@@ -1,0 +1,43 @@
+{
+  "name": "compound-engineering-feat-python",
+  "version": "2.4.1",
+  "description": "Python-specialized development tools with microservice support. 33 agents, 21 commands, 26 skills, 1 MCP server.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/check-dependencies.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "author": {
+    "name": "BaronVonSario",
+    "email": "cesar.gon.fer@gmail.com",
+    "url": "https://github.com/BaronVonSario"
+  },
+  "repository": "https://github.com/weorbitant/compound-engineering-feat-python-plugin",
+  "license": "MIT",
+  "keywords": [
+    "ai-powered",
+    "compound-engineering",
+    "python",
+    "django",
+    "fastapi",
+    "pytest",
+    "pydantic",
+    "postgresql",
+    "code-review",
+    "knowledge-management"
+  ],
+  "mcpServers": {
+    "context7": {
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
+    }
+  }
+}

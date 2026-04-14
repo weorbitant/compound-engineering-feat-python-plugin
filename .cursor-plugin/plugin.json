@@ -1,0 +1,28 @@
+{
+  "name": "compound-engineering-feat-python",
+  "displayName": "Compound Engineering feat. Python",
+  "version": "2.2.0",
+  "description": "Python-specialized development tools. 33 agents, 21 commands, 26 skills, 1 MCP server.",
+  "author": {
+    "name": "BaronVonSario",
+    "email": "cesar.gon.fer@gmail.com",
+    "url": "https://github.com/BaronVonSario"
+  },
+  "repository": "https://github.com/BaronVonSario/compound-engineering-feat-python",
+  "license": "MIT",
+  "keywords": [
+    "cursor",
+    "plugin",
+    "ai-powered",
+    "compound-engineering",
+    "python",
+    "django",
+    "fastapi",
+    "pytest",
+    "pydantic",
+    "postgresql",
+    "code-review",
+    "knowledge-management"
+  ],
+  "mcpServers": ".mcp.json"
+}
