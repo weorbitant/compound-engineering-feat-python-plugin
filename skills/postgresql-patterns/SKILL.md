@@ -1,6 +1,7 @@
 ---
 name: postgresql-patterns
 description: PostgreSQL optimization patterns for schema design, indexing, query tuning, and monitoring. Use when working on projects with psycopg2, asyncpg, or psycopg in their dependencies.
+model: haiku
 ---
 
 # PostgreSQL Patterns

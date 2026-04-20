@@ -1,6 +1,7 @@
 ---
 name: postgis-patterns
 description: PostGIS spatial database patterns covering geometry types, spatial queries, indexing, GeoDjango, and GeoAlchemy2. Use when working on projects with django.contrib.gis or geoalchemy2 in their dependencies.
+model: haiku
 ---
 
 # PostGIS Patterns

@@ -5,6 +5,31 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2026-04-20
+
+### Changed
+
+- **Model tier assignments for all 26 skills** — Added `model:` frontmatter to every SKILL.md using a 3-tier strategy that mirrors the agent tiering from 2.4.0:
+  - **Opus** (8 skills): `orchestrating-swarms`, `compound-docs`, `agent-native-architecture`, `create-agent-skills`, `brainstorming`, `document-review`, `skill-creator`, `frontend-design` — high-reasoning design, orchestration, and synthesis work
+  - **Sonnet** (7 skills): `commit`, `setup`, `git-worktree`, `agent-browser`, `gemini-imagegen`, `resolve-pr-parallel`, `file-todos` — task execution requiring understanding
+  - **Haiku** (11 skills): all `*-patterns` skills (`django-*`, `fastapi-*`, `postgresql-*`, `postgis-*`, `pytest-*`), `python-style`, `python-typing`, `rclone` — reference lookups and mechanical pattern matching
+- **SKILL.md files optimized via progressive disclosure** — Total skill content reduced from 6,295 → 3,017 lines (52% reduction), with every SKILL.md now under 230 lines. Heavy reference material moved into `references/` subfolders per the [official skills spec](https://code.claude.com/docs/en/skills):
+  - **`orchestrating-swarms`**: 1,715 → 91 lines. Split 16 H2 sections into 9 reference files (`architecture`, `spawning`, `teammate-operations`, `task-system`, `message-formats`, `patterns`, `workflows`, `backends`, `error-handling`).
+  - **`compound-docs`**: 518 → 91 lines. Moved 7-step process detail and example scenario into `references/process.md` and `references/example.md`.
+  - **`agent-native-architecture`**: 435 → 188 lines. Extracted core principles and anti-patterns into new reference files; SKILL.md now acts as a router.
+  - **`commit`**: 295 → 162 lines. Emoji lookup tables moved to `references/emoji-table.md`.
+  - **`setup`**: 296 → 103 lines. Stack detection rules and agent computation moved to `references/stack-detection.md`.
+  - **`git-worktree`**: 302 → 86 lines. Commands, troubleshooting, and technical details moved to `references/commands.md`.
+  - **`create-agent-skills`**: 275 → 139 lines. Detailed workflows already live in `workflows/`; SKILL.md now links to them plus reference material.
+  - **`file-todos`**: 252 → 101 lines. Workflows and command cheat-sheet moved to `references/workflows.md`.
+  - **`gemini-imagegen`**: 237 → 69 lines. Code examples consolidated into `references/examples.md`.
+
+### Summary
+
+- 33 agents, 21 commands, 26 skills, 1 MCP server
+
+---
+
 ## [2.4.1] - 2026-04-10
 
 ### Fixed

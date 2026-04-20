@@ -1,6 +1,7 @@
 ---
 name: django-patterns
 description: Django core patterns for models, views, admin, signals, middleware, and Django Ninja APIs. Use when working on projects with django in their dependencies.
+model: haiku
 ---
 
 # Django Patterns

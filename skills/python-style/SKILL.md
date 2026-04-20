@@ -1,6 +1,7 @@
 ---
 name: python-style
 description: Enforce Python code style conventions including PEP 8 overrides, modern syntax, and Pythonic patterns. Use when writing, reviewing, or refactoring Python code to ensure consistency with project standards.
+model: haiku
 ---
 
 # Python Style Guide

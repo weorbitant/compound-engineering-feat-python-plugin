@@ -1,6 +1,7 @@
 ---
 name: django-drf
 description: Django REST Framework patterns for serializers, viewsets, routers, permissions, and authentication. Use when building or reviewing projects with djangorestframework in dependencies.
+model: haiku
 ---
 
 # Django REST Framework Patterns

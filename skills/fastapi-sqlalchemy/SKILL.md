@@ -1,6 +1,7 @@
 ---
 name: fastapi-sqlalchemy
 description: Async SQLAlchemy 2.0 patterns with FastAPI and Alembic migration management. Use when working on FastAPI projects with sqlalchemy in their dependencies.
+model: haiku
 ---
 
 # FastAPI + SQLAlchemy

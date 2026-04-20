@@ -1,6 +1,6 @@
 {
   "name": "compound-engineering-feat-python",
-  "version": "2.4.1",
+  "version": "2.5.0",
   "description": "Python-specialized development tools with microservice support. 33 agents, 21 commands, 26 skills, 1 MCP server.",
   "hooks": {
     "SessionStart": [

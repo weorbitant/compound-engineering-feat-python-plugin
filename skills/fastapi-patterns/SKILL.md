@@ -1,6 +1,7 @@
 ---
 name: fastapi-patterns
 description: FastAPI core patterns for routes, dependency injection, async, auth, and OpenAPI. Use when working on projects with fastapi in their dependencies.
+model: haiku
 ---
 
 # FastAPI Patterns

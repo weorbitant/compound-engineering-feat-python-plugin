@@ -1,6 +1,7 @@
 ---
 name: django-async
 description: Implement async task queues with Celery and real-time WebSocket support with Django Channels. Use when a Django project includes celery or channels in its dependencies, or when implementing background processing, periodic tasks, WebSocket connections, or real-time features.
+model: haiku
 ---
 
 # Django Async Patterns

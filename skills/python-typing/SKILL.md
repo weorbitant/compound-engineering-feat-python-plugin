@@ -1,6 +1,7 @@
 ---
 name: python-typing
 description: Apply modern Python 3.10+ type annotations and Pydantic v2 patterns. Use when writing type-safe Python code, designing data models, adding type hints to existing code, or integrating Pydantic with frameworks like FastAPI or Django Ninja.
+model: haiku
 ---
 
 # Python Typing

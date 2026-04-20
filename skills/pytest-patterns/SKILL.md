@@ -1,6 +1,7 @@
 ---
 name: pytest-patterns
 description: Pytest patterns for fixtures, parametrize, mocking, async testing, and factory_boy. Use when writing or reviewing Python tests, setting up test infrastructure, or debugging test failures.
+model: haiku
 ---
 
 # Pytest Patterns
