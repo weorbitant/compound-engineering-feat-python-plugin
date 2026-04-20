@@ -2,6 +2,8 @@
 name: python-typing-reviewer
 description: "Reviews Python code for type annotation completeness, modern typing syntax, Pydantic model design, and type safety patterns. Use when auditing type hints, designing data models, or enforcing type correctness."
 model: sonnet
+skills:
+  - python-typing
 ---
 
 <examples>

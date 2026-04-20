@@ -2,6 +2,8 @@
 name: django-reviewer
 description: "Reviews Django core patterns including models, views, URLs, forms, admin, signals, middleware, and Django Ninja APIs. Use when reviewing Django application code for correctness, maintainability, and adherence to framework conventions."
 model: sonnet
+skills:
+  - django-patterns
 ---
 
 <examples>

@@ -2,6 +2,8 @@
 name: schema-drift-detector
 description: "Detects unrelated migration files in PRs by cross-referencing against PR scope. Use when reviewing PRs with database migrations."
 model: haiku
+skills:
+  - postgresql-patterns
 ---
 
 <examples>

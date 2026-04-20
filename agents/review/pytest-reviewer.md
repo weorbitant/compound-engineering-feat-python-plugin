@@ -2,6 +2,8 @@
 name: pytest-reviewer
 description: "Reviews Python test quality for structure, fixtures, isolation, assertions, coverage, and mocking discipline. Use after writing or modifying tests, or when test failures suggest structural problems."
 model: sonnet
+skills:
+  - pytest-patterns
 ---
 
 <examples>

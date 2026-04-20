@@ -2,6 +2,8 @@
 name: django-celery-reviewer
 description: "Reviews Celery task design for idempotency, error handling, queue routing, serialization safety, and transaction awareness. Use when reviewing Celery tasks, beat schedules, or background job implementations in Django projects."
 model: sonnet
+skills:
+  - django-async
 ---
 
 <examples>

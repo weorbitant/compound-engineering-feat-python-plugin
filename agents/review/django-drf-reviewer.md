@@ -2,6 +2,8 @@
 name: django-drf-reviewer
 description: "Reviews Django REST Framework API design including serializers, viewsets, permissions, pagination, throttling, and authentication. Use when reviewing DRF-based API code for correctness, performance, and REST best practices."
 model: sonnet
+skills:
+  - django-drf
 ---
 
 <examples>

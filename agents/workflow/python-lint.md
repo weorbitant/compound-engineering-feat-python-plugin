@@ -2,6 +2,8 @@
 name: python-lint
 description: "Runs ruff and mypy to lint, format-check, and type-check Python code. Use when preparing to push Python code or when code quality checks are needed."
 model: haiku
+skills:
+  - python-style
 ---
 
 <examples>

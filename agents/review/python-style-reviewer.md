@@ -2,6 +2,8 @@
 name: python-style-reviewer
 description: "Reviews Python code for PEP 8 compliance and project-specific style conventions including imports, naming, formatting, and modern syntax. Use when reviewing Python code style or enforcing project standards."
 model: haiku
+skills:
+  - python-style
 ---
 
 <examples>

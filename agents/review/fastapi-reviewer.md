@@ -2,6 +2,8 @@
 name: fastapi-reviewer
 description: "Reviews FastAPI application architecture for route design, dependency injection, async correctness, error handling, and OpenAPI compliance. Use when reviewing FastAPI endpoints or application structure."
 model: sonnet
+skills:
+  - fastapi-patterns
 ---
 
 <examples>

@@ -2,6 +2,8 @@
 name: postgresql-reviewer
 description: "Reviews database queries, schema design, migrations, and ORM usage for PostgreSQL performance and safety. Use when reviewing code that interacts with PostgreSQL or when migrations are created."
 model: sonnet
+skills:
+  - postgresql-patterns
 ---
 
 <examples>

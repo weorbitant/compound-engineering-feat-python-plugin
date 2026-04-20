@@ -2,6 +2,8 @@
 name: postgis-reviewer
 description: "Reviews spatial data handling for SRID consistency, geometry/geography correctness, spatial indexing, and GeoDjango patterns. Use when reviewing code that stores, queries, or serializes geographic data."
 model: sonnet
+skills:
+  - postgis-patterns
 ---
 
 <examples>

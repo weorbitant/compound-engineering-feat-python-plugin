@@ -9,7 +9,7 @@
       "name": "compound-engineering-feat-python",
       "source": "./",
       "description": "Python-specialized development tools. 33 agents, 21 commands, 26 skills, 1 MCP server.",
-      "version": "2.5.1",
+      "version": "2.5.2",
       "author": {
         "name": "BaronVonSario"
       }

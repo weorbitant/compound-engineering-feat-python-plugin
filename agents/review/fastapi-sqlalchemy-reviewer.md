@@ -2,6 +2,8 @@
 name: fastapi-sqlalchemy-reviewer
 description: "Reviews SQLAlchemy integration in FastAPI applications for session lifecycle, model design, query patterns, and Alembic migrations. Use when reviewing database layer code in FastAPI projects."
 model: sonnet
+skills:
+  - fastapi-sqlalchemy
 ---
 
 <examples>

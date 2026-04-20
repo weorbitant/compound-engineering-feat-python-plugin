@@ -2,6 +2,8 @@
 name: django-migration-reviewer
 description: "Reviews Django migration safety including reversibility, lock impact, data loss prevention, large table handling, and zero-downtime deployment patterns. Use when reviewing migration files or schema changes in Django projects."
 model: sonnet
+skills:
+  - django-patterns
 ---
 
 <examples>

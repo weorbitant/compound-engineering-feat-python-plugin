@@ -5,6 +5,30 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.2] - 2026-04-20
+
+### Changed
+
+- **17 subagents now preload relevant skills via `skills:` frontmatter** — Subagents don't inherit skills from the parent conversation ([docs](https://code.claude.com/docs/en/sub-agents)). Review, workflow, and design agents were flying blind when spawned via `Task()` — the `workflow_skills` config only loaded skills into the main command context, never into spawned reviewers. Mapping:
+  - `django-reviewer`, `django-migration-reviewer` → `django-patterns`
+  - `django-drf-reviewer` → `django-drf`
+  - `django-celery-reviewer` → `django-async`
+  - `fastapi-reviewer` → `fastapi-patterns`
+  - `fastapi-sqlalchemy-reviewer` → `fastapi-sqlalchemy`
+  - `postgresql-reviewer`, `schema-drift-detector` → `postgresql-patterns`
+  - `postgis-reviewer` → `postgis-patterns`
+  - `pytest-reviewer`, `bug-reproduction-validator` → `pytest-patterns`
+  - `python-style-reviewer`, `python-lint` → `python-style`
+  - `python-typing-reviewer` → `python-typing`
+  - `design-implementation-reviewer`, `design-iterator`, `figma-design-sync` → `frontend-design`
+- Deliberately skipped for 16 agents (architecture-strategist, security-sentinel, performance-oracle, research agents, etc.) — their scope spans multiple frameworks or is principle-based, so preloading any single pattern skill would bias focus.
+
+### Summary
+
+- 33 agents, 21 commands, 26 skills, 1 MCP server
+
+---
+
 ## [2.5.1] - 2026-04-20
 
 ### Removed
