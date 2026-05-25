@@ -2,6 +2,18 @@
 
 This file documents the interactive prompting protocol when multiple services exist but the user has not specified `--services`.
 
+## Step 0: Detect existing `<focus_context>`
+
+Check the conversation history for an existing `<focus_context>...</focus_context>` block set by a prior invocation of this skill.
+
+If `--services` was also provided in the current invocation, that takes precedence — skip this step and use Step 1 instead.
+
+If a `<focus_context>` block is found (and no `--services` override is present):
+
+1. Parse the `services:` line to extract the focused service names.
+2. Treat those names as the focused set; skip Steps 1-3 (no rediscovery, no interactive prompt).
+3. Proceed to Step 4 only if any per-service context (description, stack, or structure) appears stale or missing from the prior block; otherwise reuse the prior `<focus_context>` contents and return immediately.
+
 ## Step 1: Discovery
 
 Run `Glob("*/pyproject.toml")` from the repo root. Each match represents a candidate service. Strip the trailing `/pyproject.toml` to get the service name (e.g., `service-a/pyproject.toml` → `service-a`).

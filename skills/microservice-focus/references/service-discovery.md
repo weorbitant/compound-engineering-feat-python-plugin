@@ -16,7 +16,7 @@ service-b/pyproject.toml  →  service-b
 lib-common/pyproject.toml →  lib-common
 ```
 
-If the glob returns 0 results: not a Python repo — return single-service mode.
+If the glob returns 0 results: treat as single-service mode (the repo may not be a Python project, or may not use per-service pyproject.toml — either way, no multi-service focus is needed).
 If 1 result: single-service repo — return single-service mode.
 If 2+ results: multi-service repo — proceed with focus gate.
 
