@@ -46,21 +46,29 @@ Invoke the `superpowers:brainstorming` skill. Pass:
 - The `<focus_context>` block returned from Step 2 (so the superpowers skill includes it in any sub-agent prompts it spawns).
 - A note that any Python `workflow_skills` listed above are already loaded in the conversation as additional context.
 
-The superpowers skill drives the rest of the conversation: clarifying questions, approach exploration, design presentation, spec writing.
+The superpowers skill drives the rest of the conversation (clarifying questions, approach exploration, design presentation, spec writing) and returns when the spec is written to the default path. Control then returns to this wrapper for Step 4.
 
-## Step 4: Multi-service spec path override
+## Step 4: Multi-service spec post-processing (multi-service only)
 
-`superpowers:brainstorming` writes its spec to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` by default.
+`superpowers:brainstorming` always writes ONE spec to the default path: `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`. It does not know about per-service paths.
 
-If Step 2 returned a non-empty service list, write **one spec per focused service** at:
+If Step 2 returned a non-empty service list, **after the superpowers skill returns**, this wrapper post-processes the spec:
 
-```
-{service}/docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md
-```
+1. Read the spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`.
+2. For each focused service, write a copy to `{service}/docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (create the directory with `mkdir -p` first).
+3. To each per-service copy, prepend a `## Services` section listing all focused services and their roles, so `/workflows:plan` can auto-detect scope on the next step. Example:
 
-Each per-service spec focuses on that service's role and decisions. Add a `## Services` section to each listing all focused services and their roles, so `/workflows:plan` can auto-detect scope on the next step.
+   ```markdown
+   ## Services
 
-Create the `{service}/docs/superpowers/specs/` directories with `mkdir -p` as needed before writing.
+   - **service-order**: Produces order events consumed by payment
+   - **service-payment**: Handles payment processing triggered by orders
+   - **lib-common**: Shared DTOs used by both services
+   ```
+
+4. **Delete** the original root-level `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` to avoid duplication. (In single-service mode, this deletion does NOT happen — the root spec stays.)
+
+In single-service mode (Step 2 returned empty service list), this entire step is skipped — the root-level spec is the final artifact.
 
 ## Output
 
