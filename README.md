@@ -1,6 +1,6 @@
 # Compound Engineering feat. Python
 
-A Claude Code plugin that supercharges Python development with 33 specialized agents, 21 commands, 26 skills, and an MCP server — all wired into a cohesive engineering workflow. Built for Django, FastAPI, pytest, Pydantic, PostgreSQL, and PostGIS projects, with first-class support for multi-service monorepos.
+A Claude Code plugin that supercharges Python development with 32 specialized agents, 18 commands, 21 skills, and an MCP server — built on Anthropic's `superpowers` plugin for workflow primitives. Specialized for Django, FastAPI, pytest, Pydantic, PostgreSQL, and PostGIS projects, with first-class support for multi-service monorepos.
 
 > Fork of [Compound Engineering Plugin](https://github.com/EveryInc/compound-engineering-plugin) by [Kieran Klaassen](https://github.com/kieranklaassen), fully rewritten for the Python ecosystem.
 
@@ -9,14 +9,21 @@ A Claude Code plugin that supercharges Python development with 33 specialized ag
 Instead of generic AI assistance, this plugin gives Claude deep knowledge of Python frameworks and enforces a structured engineering workflow:
 
 ```
-/workflows:brainstorm → /workflows:plan → /workflows:work → /workflows:review → /workflows:compound
+/workflows:brainstorm → /workflows:plan → /workflows:work → /workflows:review
 ```
 
 Each step loads relevant skills (Django patterns, pytest conventions, PostgreSQL optimization...), spawns specialized review agents, and enforces quality gates — tests must pass, linting must be clean, pre-commit hooks must succeed — before anything ships.
 
-For the impatient: `/lfg` runs the entire pipeline autonomously, from plan to PR.
-
 ## Installation
+
+### Prerequisite: Install superpowers
+
+This plugin requires the `superpowers` plugin (provides generic workflow primitives).
+
+```
+/plugin marketplace add anthropics/claude-plugins-official
+/plugin install superpowers@claude-plugins-official
+```
 
 This plugin is distributed as its own Claude Code marketplace. Add the repo, then install:
 
@@ -51,17 +58,13 @@ Checked automatically on session start — you'll see warnings for anything miss
 /workflows:plan add rate limiting with Redis sliding window
 
 # Execute the plan
-/workflows:work docs/plans/2026-04-01-rate-limiting.md
+/workflows:work docs/superpowers/plans/2026-04-01-rate-limiting.md
 
 # Review the changes
 /workflows:review
-
-# Document what you learned
-/workflows:compound
-
-# Or just do it all at once
-/lfg add rate limiting to the payment API
 ```
+
+Brainstorm specs land at `docs/superpowers/specs/`; plans at `docs/superpowers/plans/`.
 
 ## Core Workflow Commands
 
@@ -69,11 +72,10 @@ Commands use `workflows:` prefix to avoid collisions with Claude Code built-ins 
 
 | Command | Purpose |
 |---------|---------|
-| `/workflows:brainstorm` | Explore requirements and approaches before committing to a plan |
-| `/workflows:plan` | Generate implementation plans with size-appropriate detail |
-| `/workflows:work` | Execute a plan with incremental commits, quality gates, and test-fix loops |
-| `/workflows:review` | Multi-agent code review with configurable reviewer roster |
-| `/workflows:compound` | Capture solved problems as searchable documentation in `docs/solutions/` |
+| `/workflows:brainstorm` | Explore requirements before planning (delegates to `superpowers:brainstorming`) |
+| `/workflows:plan` | Generate implementation plans (delegates to `superpowers:writing-plans`) |
+| `/workflows:work` | Execute a plan with Python quality gates (delegates to `superpowers:executing-plans`) |
+| `/workflows:review` | Multi-agent Python code review (delegates to `superpowers:requesting-code-review`) |
 
 Each workflow command:
 - Loads project-specific skills from `compound-engineering.local.md` configuration
@@ -84,8 +86,6 @@ Each workflow command:
 
 | Command | Description |
 |---------|-------------|
-| `/lfg` | Full autonomous pipeline: plan → deepen → work → review → test → video → PR |
-| `/slfg` | Same as `/lfg` but uses swarm mode for parallel execution |
 | `/deepen-plan` | Enrich a plan with parallel research agents for each section |
 | `/changelog` | Generate changelogs from recent merges |
 | `/create-agent-skill` | Guided skill creation |
@@ -101,7 +101,16 @@ Each workflow command:
 | `/report-bug` | Report a plugin bug |
 | `/heal-skill` | Fix skill documentation issues |
 
-## Agents (33)
+### Deprecated commands (v3.0.0)
+
+These commands were removed in v3.0.0; they remain as shims that print a migration message and will be deleted in v4.0.0:
+
+- `/workflows:compound` — knowledge-capture pattern dropped; no replacement.
+- `/lfg`, `/slfg` — autonomous pipelines dropped; orchestrate stages directly.
+
+See CHANGELOG.md v3.0.0 for migration details.
+
+## Agents (32)
 
 Agents run as sub-processes during workflows. They are grouped by specialization.
 
@@ -169,7 +178,6 @@ Agents use a 3-tier model strategy to optimize cost without sacrificing quality:
 | `best-practices-researcher` | sonnet | External best practices (checks skills first) |
 | `framework-docs-researcher` | sonnet | Framework documentation and patterns |
 | `git-history-analyzer` | sonnet | Git history and code evolution |
-| `learnings-researcher` | haiku | Past solutions from `docs/solutions/` |
 | `repo-research-analyst` | sonnet | Repository structure and conventions |
 
 ### Design
@@ -189,9 +197,11 @@ Agents use a 3-tier model strategy to optimize cost without sacrificing quality:
 | `pr-comment-resolver` | sonnet | PR comment resolution |
 | `spec-flow-analyzer` | opus | User flow gap analysis |
 
-## Skills (26)
+## Skills (21)
 
 Skills provide domain knowledge that agents and workflows load on demand. They contain reference documentation, conventions, and patterns.
+
+Workflow primitives (brainstorming, git worktrees, skill writing, parallel agents) now come from the `superpowers` plugin.
 
 ### Python Core
 - **`python-style`** — PEP 8, naming, imports, logging with emoji prefixes
@@ -217,22 +227,17 @@ Skills provide domain knowledge that agents and workflows load on demand. They c
 - **`agent-native-architecture`** — Agent-native app patterns (action parity, context injection, shared workspace, dynamic capability discovery)
 - **`frontend-design`** — Production-grade frontend interfaces
 
+### Microservice Support
+- **`microservice-focus`** — Service discovery, `--services` parsing, multi-service prompting, and `<focus_context>` block construction
+
 ### Development Tools
-- **`compound-docs`** — Structured solution documentation
-- **`create-agent-skills`** — Skill authoring guide
-- **`skill-creator`** — Skill creation framework
 - **`setup`** — Interactive project configuration for review agents and workflow skills
 
 ### Content & Workflow
-- **`brainstorming`** — Collaborative exploration techniques
 - **`commit`** — Conventional commits with gitmoji, logical grouping, pre-commit handling
 - **`document-review`** — Structured document improvement
 - **`file-todos`** — File-based todo tracking
-- **`git-worktree`** — Parallel development with Git worktrees
 - **`resolve-pr-parallel`** — Parallel PR comment resolution
-
-### Multi-Agent Orchestration
-- **`orchestrating-swarms`** — Multi-agent coordination with TeammateTool and Task system
 
 ### Integrations
 - **`rclone`** — Cloud storage uploads (S3, R2, B2)
@@ -275,7 +280,6 @@ workflow_skills:
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]
-  compound: [django-patterns]
 ---
 ```
 
@@ -289,7 +293,7 @@ The `/setup` skill auto-detects your stack (Django, FastAPI, DRF, Celery, SQLAlc
 
 ## Microservice Support
 
-For multi-service monorepos, the plugin provides:
+For multi-service monorepos, the plugin provides. Focus Gate logic now lives in the `microservice-focus` skill, invoked once by each workflow command.
 
 - **Auto-detection** — Discovers services via `*/pyproject.toml` at root level
 - **Focus Gate** — Each workflow command prompts for relevant services (or accepts `--services` argument)
@@ -309,9 +313,8 @@ All workflow commands accept `--services` for automated invocation:
 
 | Doc Type | Single Service | Multi-Service |
 |----------|---------------|---------------|
-| Brainstorms | Single document | `{service}/docs/brainstorms/` per service |
-| Plans | `docs/plans/` | Root overview + per-service plan files |
-| Solutions | `docs/solutions/` | `{service}/docs/solutions/` with cross-refs |
+| Specs | `docs/superpowers/specs/` | `{service}/docs/superpowers/specs/` per service |
+| Plans | `docs/superpowers/plans/` | Root overview + per-service plan files under `{service}/docs/superpowers/plans/` |
 
 ## How It Works
 
@@ -326,25 +329,11 @@ The work command is the engine that turns plans into shipped code:
 
 Every commit goes through a test-and-fix gate: run tests → fix failures → stage → commit → if pre-commit fails → fix → re-test → retry. Never ships with failing tests, never skips hooks.
 
-### Swarm Mode
-
-For complex features, `/slfg` or explicit swarm mode spawns parallel worker agents:
-
-```
-Team lead → spawns implementers + testers → monitors via Task system → ships when done
-```
-
-Uses Claude Code's TeammateTool system with dependency-aware task scheduling.
-
-### Knowledge Compounding
-
-`/workflows:compound` captures solutions in `docs/solutions/` with YAML frontmatter. The `learnings-researcher` agent searches these during future reviews, so past solutions inform new work. Knowledge compounds.
-
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 2.4.0**
+**Current version: 3.0.0**
 
 ## Contributing
 

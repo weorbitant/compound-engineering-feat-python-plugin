@@ -5,6 +5,63 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-05-25
+
+### Changed
+- Plugin now requires the `superpowers` plugin as a foundation. All generic workflow
+  primitives (brainstorming, planning, execution, review, git worktrees, parallel
+  agents, skill writing) are delegated to superpowers; this plugin focuses on
+  Python/Django/FastAPI domain value and microservice orchestration.
+- Workflow commands rewritten as thin wrappers that delegate to superpowers skills:
+  `/workflows:brainstorm` → `superpowers:brainstorming`, `/workflows:plan` →
+  `superpowers:writing-plans`, `/workflows:work` → `superpowers:executing-plans`
+  (+ Python quality gate), `/workflows:review` → `superpowers:requesting-code-review`.
+- Microservice Focus Gate logic extracted from each workflow command into a new
+  `microservice-focus` skill.
+- Brainstorm artifact paths changed from `docs/brainstorms/` to
+  `docs/superpowers/specs/` (and `{service}/docs/superpowers/specs/` in multi-service
+  mode), matching superpowers vocabulary ("spec" instead of "brainstorm doc").
+- `scripts/check-dependencies.sh` now warns if the superpowers plugin is not detected.
+- `<focus_context>` block in `CLAUDE.md` normalized from `connections:` (single line)
+  to `dependencies:` (list format), matching the workflow commands and the
+  `microservice-focus` skill.
+
+### Removed
+- `/workflows:compound` command (knowledge-capture pattern dropped). Deprecation shim
+  remains for one major cycle.
+- `/lfg` and `/slfg` autonomous pipelines (users orchestrate stages directly).
+  Deprecation shims remain for one major cycle.
+- 6 skills replaced by superpowers equivalents: `brainstorming`, `git-worktree`,
+  `skill-creator`, `create-agent-skills`, `orchestrating-swarms`, and `compound-docs`
+  (the last because its only consumer was `/workflows:compound`).
+- `learnings-researcher` agent (read from the now-removed `docs/solutions/` pattern).
+- Knowledge-compounding pattern (`docs/solutions/`) — historical files in user repos
+  remain untouched (and `/workflows:review` still protects them from accidental
+  deletion) but are no longer read or written by this plugin.
+- `compound` key from `workflow_skills` in `compound-engineering.local.md` schema.
+  Existing keys are silently ignored.
+
+### Deprecated
+- `/lfg`, `/slfg`, `/workflows:compound` exist as shims that print a migration message
+  when invoked. They will be removed entirely in v4.0.0.
+
+### Added
+- `microservice-focus` skill consolidating service discovery, `--services` parsing,
+  multi-service prompting via `AskUserQuestion`, and `<focus_context>` block construction.
+
+### Migration
+- Install superpowers: `/plugin install superpowers@claude-plugins-official`.
+- Replace any `/lfg`, `/slfg`, or `/workflows:compound` invocations with the
+  appropriate sequence of `/workflows:brainstorm` → `/workflows:plan` →
+  `/workflows:work` → `/workflows:review` (or `superpowers:dispatching-parallel-agents`
+  within stages for parallel work).
+- Move any documents under `docs/brainstorms/` to `docs/superpowers/specs/` if you
+  want them auto-discovered by `/workflows:plan` (path-only rename; no schema change).
+- Remove the `compound:` line from your project's `compound-engineering.local.md`
+  if present (harmless to leave, but cleaner to drop).
+
+---
+
 ## [2.5.2] - 2026-04-20
 
 ### Changed

@@ -48,7 +48,6 @@ skills/
 - `/workflows:plan` - Create implementation plans
 - `/workflows:review` - Run comprehensive code reviews
 - `/workflows:work` - Execute work items systematically
-- `/workflows:compound` - Document solved problems
 
 **Why `workflows:`?** Claude Code has built-in `/plan` and `/review` commands. Using `name: workflows:plan` in frontmatter creates a unique `/workflows:plan` command with no collision.
 
@@ -102,11 +101,12 @@ When spawning sub-agents via Task tool, include a standardized `<focus_context>`
 ```
 <focus_context>
   services: service-a (./service-a), service-b (./service-b)
-  connections: service-a depends on lib-common (pyproject.toml)
+  dependencies:
+    - service-a depends on lib-common (shared DTOs)
 </focus_context>
 ```
 
-All commands and skills MUST include this block when spawning sub-agents to prevent focus loss in nested delegation chains.
+All commands and skills MUST include this block when spawning sub-agents to prevent focus loss in nested delegation chains. The full Focus Gate protocol and `<focus_context>` template now live in the `microservice-focus` skill. Workflow commands invoke that skill once instead of inlining the logic.
 
 ### Pipeline Mode
 
@@ -119,9 +119,8 @@ All workflow commands accept `--services` argument for automated invocation:
 
 | Doc Type | Single Service | Cross-Service |
 |----------|---------------|---------------|
-| Brainstorms | Single doc mentioning affected services | `{service}/docs/brainstorms/...` per service |
-| Plans | `{service}/docs/plans/...` | Root overview + per-service plan files |
-| Solutions | `{service}/docs/solutions/...` | Root `docs/solutions/...` with service refs |
+| Specs | `docs/superpowers/specs/...` | `{service}/docs/superpowers/specs/...` per service |
+| Plans | `docs/superpowers/plans/...` (or `{service}/docs/superpowers/plans/...`) | Root overview at `docs/superpowers/plans/...` + per-service plan files |
 
 ## Workflow Skills Configuration
 
@@ -134,7 +133,6 @@ workflow_skills:
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]
-  compound: [django-patterns]
 ---
 ```
 
@@ -149,6 +147,3 @@ Project-local skills in `.claude/skills/` can also be listed here by name.
 - If the user asks for something that will cause problems (bad architecture, wrong pattern, fragile code), push back before implementing.
 - Be direct and honest, even if it means disagreeing. A wrong decision caught early saves hours of rework.
 
-## Documentation
-
-See `docs/solutions/plugin-versioning-requirements.md` for detailed versioning workflow.
