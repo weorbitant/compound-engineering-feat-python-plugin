@@ -1,20 +1,20 @@
 ---
 name: lfg
-description: Full autonomous engineering workflow
+description: "(DEPRECATED v3.0.0 — removed in v4.0.0) Full autonomous pipeline"
 argument-hint: "[feature description]"
-disable-model-invocation: true
 ---
 
-Run these slash commands in order. Do not do anything else. Do not stop between steps — complete every step through to the end.
+# `/lfg` — Removed in v3.0.0
 
-1. **Optional:** If the `ralph-wiggum` skill is available, run `/ralph-wiggum:ralph-loop "finish all slash commands" --completion-promise "DONE"`. If not available or it fails, skip and continue to step 2 immediately.
-2. `/workflows:plan $ARGUMENTS`
-3. `/compound-engineering:deepen-plan`
-4. `/workflows:work`
-5. `/workflows:review`
-6. `/compound-engineering:resolve_todo_parallel`
-7. `/compound-engineering:test-browser`
-8. `/compound-engineering:feature-video`
-9. Output `<promise>DONE</promise>` when video is in PR
+The `/lfg` autonomous pipeline was removed in v3.0.0. Users now orchestrate the stages directly, which keeps each step interruptible and reviewable.
 
-Start with step 2 now (or step 1 if ralph-wiggum is available).
+Run the stages in sequence:
+
+1. `/workflows:brainstorm "<your idea>"` — explore and write a spec.
+2. `/workflows:plan <spec-path>` — turn the spec into an implementation plan.
+3. `/workflows:work <plan-path>` — execute the plan with the Python quality gate.
+4. `/workflows:review` — multi-agent review of the resulting PR.
+
+Each stage now delegates to a `superpowers:*` skill underneath. See `CHANGELOG.md` v3.0.0 for the full rationale.
+
+This shim will be removed entirely in v4.0.0.

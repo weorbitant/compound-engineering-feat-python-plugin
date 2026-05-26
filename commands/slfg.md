@@ -1,32 +1,22 @@
 ---
 name: slfg
-description: Full autonomous engineering workflow using swarm mode for parallel execution
+description: "(DEPRECATED v3.0.0 — removed in v4.0.0) Swarm-mode autonomous pipeline"
 argument-hint: "[feature description]"
-disable-model-invocation: true
 ---
 
-Swarm-enabled LFG. Run these steps in order, parallelizing where indicated. Do not stop between steps — complete every step through to the end.
+# `/slfg` — Removed in v3.0.0
 
-## Sequential Phase
+The `/slfg` swarm pipeline was removed in v3.0.0 along with the `orchestrating-swarms` skill it depended on.
 
-1. **Optional:** If the `ralph-wiggum` skill is available, run `/ralph-wiggum:ralph-loop "finish all slash commands" --completion-promise "DONE"`. If not available or it fails, skip and continue to step 2 immediately.
-2. `/workflows:plan $ARGUMENTS`
-3. `/compound-engineering:deepen-plan`
-4. `/workflows:work` — **Use swarm mode**: Make a Task list and launch an army of agent swarm subagents to build the plan
+For parallel agent work, use the `superpowers:dispatching-parallel-agents` skill directly within any stage (most useful inside `/workflows:work` for independent tasks).
 
-## Parallel Phase
+For the rest of the pipeline, see `/lfg`'s migration message:
 
-After work completes, launch steps 5 and 6 as **parallel swarm agents** (both only need code to be written):
+1. `/workflows:brainstorm "<idea>"`
+2. `/workflows:plan <spec>`
+3. `/workflows:work <plan>` — invoke `superpowers:dispatching-parallel-agents` inside this for parallelism.
+4. `/workflows:review`
 
-5. `/workflows:review` — spawn as background Task agent
-6. `/compound-engineering:test-browser` — spawn as background Task agent
+See `CHANGELOG.md` v3.0.0 for the full rationale.
 
-Wait for both to complete before continuing.
-
-## Finalize Phase
-
-7. `/compound-engineering:resolve_todo_parallel` — resolve any findings from the review
-8. `/compound-engineering:feature-video` — record the final walkthrough and add to PR
-9. Output `<promise>DONE</promise>` when video is in PR
-
-Start with step 1 now.
+This shim will be removed entirely in v4.0.0.
