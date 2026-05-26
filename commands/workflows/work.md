@@ -54,10 +54,12 @@ Execution plan:
     service-b — Payment processing (FastAPI, SQLAlchemy) — depends on service-a
 
 Default: sequential execution in topological order.
-Options: [Confirm] [Force sequential] [Adjust order]
+Options: [Confirm] [Force parallel] [Force sequential] [Adjust order]
 ```
 
-For parallel execution within a wave, use `superpowers:dispatching-parallel-agents` (do NOT invoke the deleted `orchestrating-swarms` skill).
+**If the user picks `[Force parallel]`:** within each wave, invoke `superpowers:dispatching-parallel-agents` to run that wave's services concurrently (do NOT invoke the deleted `orchestrating-swarms` skill). Waves still run sequentially with respect to each other — only within a wave is parallelized.
+
+**In single-service mode** (no `services:` frontmatter in the plan AND no `--services` argument), skip the wavefront/cycle/execution-order logic above — there's nothing to order. Step 3 passes no execution order parameter to superpowers; it runs as a single-service invocation.
 
 ## Step 3: Delegate plan execution to superpowers
 
@@ -70,7 +72,7 @@ Invoke the `superpowers:executing-plans` skill (or `superpowers:subagent-driven-
   - Single-service: `poetry run pytest` (or whatever the project's CLAUDE.md specifies)
   - Multi-service: `cd {service} && poetry run pytest` for each service
 
-The superpowers skill handles the task loop, per-task commits, and incremental progress. Control returns to this wrapper after the skill completes all tasks (or escalates).
+The superpowers skill handles the task loop, per-task commits, and incremental progress. **Instruct the skill to NOT invoke `superpowers:finishing-a-development-branch` at the end** — this wrapper owns the finishing flow (Steps 4 and 5) because it adds Python-specific value (quality gate before commit, Post-Deploy Monitoring section in PR). Control returns to this wrapper after the task loop completes (or escalates).
 
 ## Step 4: Python Quality Gate (MANDATORY — blocks Step 5)
 
@@ -119,11 +121,11 @@ Step 5 cannot start until all checks in this step pass. This is not advisory.
 
 Prerequisite: Step 4 quality gate passed. If not, return to Step 4.
 
-1. **Create commit via the `commit` skill** (kept; not deleted in this refactor). It analyzes, groups, and commits all changes with conventional + gitmoji format. Never skip pre-commit hooks with `--no-verify`.
+1. **Create commit via the `commit` skill.** It analyzes, groups, and commits all changes with conventional + gitmoji format. Never skip pre-commit hooks with `--no-verify`.
 
 2. **Capture screenshots for UI changes** — for any design changes, new views, or UI modifications:
    - Start dev server (Django: `python manage.py runserver`; FastAPI: `uvicorn main:app --reload`).
-   - Use the `agent-browser` skill (kept) to capture before/after screenshots.
+   - Use the `agent-browser` skill to capture before/after screenshots.
    - Upload via the `agent-browser` skill's upload mechanism and include URLs in the PR description.
 
 3. **Create Pull Request:**
