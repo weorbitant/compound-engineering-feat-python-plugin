@@ -50,7 +50,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multi-service prompting via `AskUserQuestion`, and `<focus_context>` block construction.
 
 ### Migration
-- Install superpowers: `/plugin install superpowers@claude-plugins-official`.
+- Install superpowers:
+  ```
+  /plugin marketplace add anthropics/claude-plugins-official
+  /plugin install superpowers@claude-plugins-official
+  ```
 - Replace any `/lfg`, `/slfg`, or `/workflows:compound` invocations with the
   appropriate sequence of `/workflows:brainstorm` → `/workflows:plan` →
   `/workflows:work` → `/workflows:review` (or `superpowers:dispatching-parallel-agents`
@@ -59,6 +63,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   want them auto-discovered by `/workflows:plan` (path-only rename; no schema change).
 - Remove the `compound:` line from your project's `compound-engineering.local.md`
   if present (harmless to leave, but cleaner to drop).
+
+### Summary
+
+32 agents, 18 active commands (+ 3 deprecation shims for one major cycle), 21 skills, 1 MCP server. Requires the `superpowers` plugin.
 
 ---
 

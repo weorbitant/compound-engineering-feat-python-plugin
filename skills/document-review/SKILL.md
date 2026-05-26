@@ -12,7 +12,7 @@ Improve brainstorm or plan documents through structured review.
 
 **If a document path is provided:** Read it, then proceed to Step 2.
 
-**If no document is specified:** Ask which document to review, or look for the most recent spec/plan in `docs/superpowers/specs/` or `docs/plans/`.
+**If no document is specified:** Ask which document to review, or look for the most recent spec/plan in `docs/superpowers/specs/`, `docs/superpowers/plans/`, or `docs/plans/` (the last is for plans created before v3.0.0).
 
 ## Step 2: Assess
 

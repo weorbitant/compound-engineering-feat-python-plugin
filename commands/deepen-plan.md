@@ -24,8 +24,8 @@ The result is a deeply grounded, production-ready plan with concrete implementat
 <plan_path> #$ARGUMENTS </plan_path>
 
 **If the plan path above is empty:**
-1. Check for recent plans: `ls -la docs/plans/`
-2. Ask the user: "Which plan would you like to deepen? Please provide the path (e.g., `docs/plans/2026-01-15-feat-my-feature-plan.md`)."
+1. Check for recent plans: `ls -la docs/superpowers/plans/ docs/plans/ 2>/dev/null` (the second path is for plans created before v3.0.0).
+2. Ask the user: "Which plan would you like to deepen? Please provide the path (e.g., `docs/superpowers/plans/2026-05-25-feat-my-feature.md`)."
 
 Do not proceed until you have a valid plan file path.
 
