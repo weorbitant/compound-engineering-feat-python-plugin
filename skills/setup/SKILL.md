@@ -67,11 +67,11 @@ Security / Performance / Architecture / Code simplicity — maps to focus-area a
 
 ```
 - Auto-configure (Recommended) — load detected stack skills into all workflows
-- Customize per workflow — multiSelect for each of 5 workflows
+- Customize per workflow — multiSelect for each of 4 workflows
 - Skip — omit workflow_skills entirely
 ```
 
-If **Customize per workflow**, for each of `brainstorm`, `plan`, `work`, `review`, `compound`, present multiSelect of available skills (`django-patterns`, `django-drf`, `django-async`, `fastapi-patterns`, `fastapi-sqlalchemy`, `pytest-patterns`, `postgresql-patterns`, `postgis-patterns`) plus any local `.claude/skills/`.
+If **Customize per workflow**, for each of `brainstorm`, `plan`, `work`, `review`, present multiSelect of available skills (`django-patterns`, `django-drf`, `django-async`, `fastapi-patterns`, `fastapi-sqlalchemy`, `pytest-patterns`, `postgresql-patterns`, `postgis-patterns`) plus any local `.claude/skills/`.
 
 ## Step 4: Build Agent List and Write File
 
@@ -95,7 +95,6 @@ Workflow skills: {count} skills across {count} workflows
               plan:       {skill list or "none"}
               work:       {skill list or "none"}
               review:     {skill list or "none"}
-              compound:   {skill list or "none"}
 
 Tip: Edit the "Review Context" section for project-specific instructions.
      Edit workflow_skills in the YAML frontmatter to customize per-workflow.

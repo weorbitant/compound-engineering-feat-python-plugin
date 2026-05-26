@@ -76,7 +76,7 @@ Base Python reviewers + `code-simplicity-reviewer`.
 | PostgreSQL | `postgresql-patterns` |
 | PostGIS | `postgis-patterns` |
 
-Apply to all 5 workflows uniformly. Always add `pytest-patterns` to `work` and `review`.
+Apply to all 4 workflows uniformly. Always add `pytest-patterns` to `work` and `review`.
 
 ## Output template
 
@@ -93,7 +93,6 @@ workflow_skills:
   plan: [{skill list}]
   work: [{skill list}]
   review: [{skill list}]
-  compound: [{skill list}]
 ---
 
 # Review Context
