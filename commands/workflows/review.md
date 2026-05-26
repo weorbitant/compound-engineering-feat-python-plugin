@@ -41,17 +41,19 @@ git diff --name-only origin/<default-branch>...HEAD | cut -d'/' -f1 | sort -u
 
 Cross-reference the top-level directories against discovered services (`Glob("*/pyproject.toml")`). The intersection is the list of changed services.
 
-If multiple services are changed, invoke the `microservice-focus` skill to build a `<focus_context>` block scoped to those services. Per-service agent roster loading happens in Step 3.
+If multiple services are changed, invoke the `microservice-focus` skill (passing `--services` from `$ARGUMENTS` if present) to build a `<focus_context>` block scoped to those services. Per-service agent roster loading happens in Step 3.
 
 ## Step 3: Load Reviewer Roster
 
 **Single-service or non-microservice mode:**
 Read `compound-engineering.local.md` in the project root. Use `review_agents` from the YAML frontmatter.
 
-**Multi-service mode:**
-For each changed service, check `{service}/compound-engineering.local.md` first (allows per-service agent rosters — e.g., Django agents for one, FastAPI for another). Fall back to root-level `compound-engineering.local.md`.
+**Multi-service mode** (use the changed-service list computed in Step 2):
+For each changed service from Step 2's list, check `{service}/compound-engineering.local.md` first (allows per-service agent rosters — e.g., Django agents for one, FastAPI for another). Fall back to root-level `compound-engineering.local.md`.
 
-If no settings file exists, invoke the `setup` skill to create one. Read the new file and continue.
+If no settings file exists:
+- **Interactive mode** (no `--services` argument): invoke the `setup` skill to create one. Read the new file and continue.
+- **Pipeline mode** (`--services` was passed): skip the setup skill and proceed without a Python reviewer roster (the always-on agents in Step 7 still run; superpowers' default review still happens).
 
 ## Step 4: Load Project Workflow Skills
 
@@ -78,8 +80,10 @@ When synthesizing findings, **discard any recommendations to delete or gitignore
 
 - `docs/plans/*.md`, `docs/superpowers/plans/*.md`
 - `docs/superpowers/specs/*.md`
+- `docs/solutions/*.md` (legacy; the knowledge-compounding pattern was dropped in v3.0.0 but historical files may remain in user repos)
 - `{service}/docs/plans/*.md`, `{service}/docs/superpowers/plans/*.md`
 - `{service}/docs/superpowers/specs/*.md`
+- `{service}/docs/solutions/*.md` (legacy; same reason as above)
 
 These are living pipeline artifacts. Do not create todos for their removal.
 
@@ -94,14 +98,15 @@ Invoke the `superpowers:requesting-code-review` skill. Pass:
 - The "protected artifacts" rule from Step 6 (so superpowers filters discardable findings).
 - Always-on agents to include alongside the roster:
   - `agent-native-reviewer` — verifies new features are agent-accessible
+  - `code-simplicity-reviewer` — final pass for simplicity and minimalism
 
 Note: this command does **NOT** spawn `learnings-researcher` (deleted in v3.0.0) and does NOT read `docs/solutions/` (knowledge-compounding pattern dropped).
 
 ## Step 8: Synthesis & Todos
 
-The superpowers skill handles parallel agent execution and findings collection. After it returns, use the `file-todos` skill to create one todo file per finding under `todos/`, using the standard naming `{issue_id}-pending-{priority}-{description}.md`.
+The superpowers skill handles parallel agent execution and findings collection. After it returns, **by default** use the `file-todos` skill to create one todo file per finding under `todos/`, using the standard naming `{issue_id}-pending-{priority}-{description}.md`.
 
-If the user prefers an inline summary instead of todo files, surface findings in a categorized list (P1/P2/P3) without writing files.
+**Exception** — if the user invoked the command with `--no-todos`, or if the user explicitly requested an inline summary during the conversation, surface findings as a categorized list (P1/P2/P3) without writing files.
 
 ## Step 9: Browser Test Offer (Optional)
 
