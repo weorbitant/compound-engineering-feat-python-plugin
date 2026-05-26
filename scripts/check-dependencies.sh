@@ -13,6 +13,11 @@ if ! command -v rclone &> /dev/null; then
   missing+=("rclone")
 fi
 
+# Check superpowers plugin (REQUIRED — provides workflow primitives)
+if ! find ~/.claude/plugins -type d -name "superpowers" 2>/dev/null | grep -q .; then
+  missing+=("superpowers")
+fi
+
 # If nothing is missing, exit silently
 if [ ${#missing[@]} -eq 0 ]; then
   exit 0
@@ -31,6 +36,13 @@ if [[ " ${missing[*]} " =~ " rclone " ]]; then
   warning="$warning
   - rclone (cloud file uploads for /feature-video)
     Install: https://rclone.org/install/"
+fi
+
+if [[ " ${missing[*]} " =~ " superpowers " ]]; then
+  warning="$warning
+  - superpowers (REQUIRED — provides brainstorming, planning, execution, review primitives)
+    Install: /plugin marketplace add anthropics/claude-plugins-official
+             /plugin install superpowers@claude-plugins-official"
 fi
 
 warning="$warning
