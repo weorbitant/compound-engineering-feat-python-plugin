@@ -142,130 +142,7 @@ Task general-purpose: "Use the security-patterns skill at ~/.claude/skills/secur
 
 **No limit on skill sub-agents. Spawn one for every skill that could possibly be relevant.**
 
-### 3. Discover and Apply Learnings/Solutions
-
-<thinking>
-Check for documented learnings from /workflows:compound. These are solved problems stored as markdown files. Spawn a sub-agent for each learning to check if it's relevant.
-</thinking>
-
-**LEARNINGS LOCATION - Check these exact folders:**
-
-```
-docs/solutions/           <-- PRIMARY: Project-level learnings (created by /workflows:compound)
-├── performance-issues/
-│   └── *.md
-├── debugging-patterns/
-│   └── *.md
-├── configuration-fixes/
-│   └── *.md
-├── integration-issues/
-│   └── *.md
-├── deployment-issues/
-│   └── *.md
-└── [other-categories]/
-    └── *.md
-```
-
-**Step 1: Find ALL learning markdown files**
-
-Run these commands to get every learning file:
-
-```bash
-# PRIMARY LOCATION - Project learnings
-find docs/solutions -name "*.md" -type f 2>/dev/null
-
-# If docs/solutions doesn't exist, check alternate locations:
-find .claude/docs -name "*.md" -type f 2>/dev/null
-find ~/.claude/docs -name "*.md" -type f 2>/dev/null
-```
-
-**Step 2: Read frontmatter of each learning to filter**
-
-Each learning file has YAML frontmatter with metadata. Read the first ~20 lines of each file to get:
-
-```yaml
----
-title: "N+1 Query Fix for Briefs"
-category: performance-issues
-tags: [django-orm, n-plus-one, select-related, prefetch-related]
-module: Briefs
-symptom: "Slow page load, multiple queries in logs"
-root_cause: "Missing includes on association"
----
-```
-
-**For each .md file, quickly scan its frontmatter:**
-
-```bash
-# Read first 20 lines of each learning (frontmatter + summary)
-head -20 docs/solutions/**/*.md
-```
-
-**Step 3: Filter - only spawn sub-agents for LIKELY relevant learnings**
-
-Compare each learning's frontmatter against the plan:
-- `tags:` - Do any tags match technologies/patterns in the plan?
-- `category:` - Is this category relevant? (e.g., skip deployment-issues if plan is UI-only)
-- `module:` - Does the plan touch this module?
-- `symptom:` / `root_cause:` - Could this problem occur with the plan?
-
-**SKIP learnings that are clearly not applicable:**
-- Plan is frontend-only → skip `database-migrations/` learnings
-- Plan is frontend-only → skip `python-specific/` learnings
-- Plan has no auth → skip `authentication-issues/` learnings
-
-**SPAWN sub-agents for learnings that MIGHT apply:**
-- Any tag overlap with plan technologies
-- Same category as plan domain
-- Similar patterns or concerns
-
-**Step 4: Spawn sub-agents for filtered learnings**
-
-For each learning that passes the filter:
-
-```
-Task general-purpose: "
-LEARNING FILE: [full path to .md file]
-
-1. Read this learning file completely
-2. This learning documents a previously solved problem
-
-Check if this learning applies to this plan:
-
----
-[full plan content]
----
-
-If relevant:
-- Explain specifically how it applies
-- Quote the key insight or solution
-- Suggest where/how to incorporate it
-
-If NOT relevant after deeper analysis:
-- Say 'Not applicable: [reason]'
-"
-```
-
-**Example filtering:**
-```
-# Found 15 learning files, plan is about "Django/FastAPI API caching"
-
-# SPAWN (likely relevant):
-docs/solutions/performance-issues/n-plus-one-queries.md      # tags: [django-orm] ✓
-docs/solutions/performance-issues/redis-cache-stampede.md    # tags: [caching, redis] ✓
-docs/solutions/configuration-fixes/redis-connection-pool.md  # tags: [redis] ✓
-
-# SKIP (clearly not applicable):
-docs/solutions/deployment-issues/docker-memory-quota.md      # not about caching
-docs/solutions/frontend-issues/celery-race-condition.md      # plan is API, not async tasks
-docs/solutions/authentication-issues/jwt-expiry.md           # plan has no auth
-```
-
-**Spawn sub-agents in PARALLEL for all filtered learnings.**
-
-**These learnings are institutional knowledge - applying them prevents repeating past mistakes.**
-
-### 4. Launch Per-Section Research Agents
+### 3. Launch Per-Section Research Agents
 
 <thinking>
 For each major section in the plan, spawn dedicated sub-agents to research improvements. Use the Explore agent type for open-ended research.
@@ -295,7 +172,7 @@ mcp__plugin_compound-engineering_context7__query-docs: Query documentation for s
 
 Search for recent (2024-2026) articles, blog posts, and documentation on topics in the plan.
 
-### 5. Discover and Run ALL Review Agents
+### 4. Discover and Run ALL Review Agents
 
 <thinking>
 Dynamically discover every available agent and run them ALL against the plan. Don't filter, don't skip, don't assume relevance. 40+ parallel agents is fine. Use everything available.
@@ -361,7 +238,7 @@ Task [agent-name]: "Review this plan using your expertise. Apply all your checks
 
 Research agents (like `best-practices-researcher`, `framework-docs-researcher`, `git-history-analyzer`, `repo-research-analyst`) should also be run for relevant plan sections.
 
-### 6. Wait for ALL Agents and Synthesize Everything
+### 5. Wait for ALL Agents and Synthesize Everything
 
 <thinking>
 Wait for ALL parallel agents to complete - skills, research agents, review agents, everything. Then synthesize all findings into a comprehensive enhancement.
@@ -370,11 +247,10 @@ Wait for ALL parallel agents to complete - skills, research agents, review agent
 **Collect outputs from ALL sources:**
 
 1. **Skill-based sub-agents** - Each skill's full output (code examples, patterns, recommendations)
-2. **Learnings/Solutions sub-agents** - Relevant documented learnings from /workflows:compound
-3. **Research agents** - Best practices, documentation, real-world examples
-4. **Review agents** - All feedback from every reviewer (architecture, security, performance, simplicity, etc.)
-5. **Context7 queries** - Framework documentation and patterns
-6. **Web searches** - Current best practices and articles
+2. **Research agents** - Best practices, documentation, real-world examples
+3. **Review agents** - All feedback from every reviewer (architecture, security, performance, simplicity, etc.)
+4. **Context7 queries** - Framework documentation and patterns
+5. **Web searches** - Current best practices and articles
 
 **For each agent's findings, extract:**
 - [ ] Concrete recommendations (actionable items)
@@ -385,7 +261,6 @@ Wait for ALL parallel agents to complete - skills, research agents, review agent
 - [ ] Edge cases discovered (handling strategies)
 - [ ] Documentation links (references)
 - [ ] Skill-specific patterns (from matched skills)
-- [ ] Relevant learnings (past solutions that apply - prevent repeating mistakes)
 
 **Deduplicate and prioritize:**
 - Merge similar recommendations from multiple agents
@@ -393,7 +268,7 @@ Wait for ALL parallel agents to complete - skills, research agents, review agent
 - Flag conflicting advice for human review
 - Group by plan section
 
-### 7. Enhance Plan Sections
+### 6. Enhance Plan Sections
 
 <thinking>
 Merge research findings back into the plan, adding depth without changing the original structure.
@@ -430,7 +305,7 @@ Merge research findings back into the plan, adding depth without changing the or
 - [Documentation URL 2]
 ```
 
-### 8. Add Enhancement Summary
+### 7. Add Enhancement Summary
 
 At the top of the plan, add a summary section:
 
@@ -451,7 +326,7 @@ At the top of the plan, add a summary section:
 - [Important finding 2]
 ```
 
-### 9. Update Plan File
+### 8. Update Plan File
 
 **Write the enhanced plan:**
 - Preserve original filename
