@@ -1,5 +1,5 @@
 #!/bin/bash
-# Check optional external dependencies and warn if missing
+# Check external dependencies (some required, some optional) and warn if missing
 
 missing=()
 
@@ -24,29 +24,29 @@ if [ ${#missing[@]} -eq 0 ]; then
 fi
 
 # Build warning message
-warning="[compound-engineering] Optional dependencies not found:"
+warning="[compound-engineering] Dependencies not found:"
 
 if [[ " ${missing[*]} " =~ " agent-browser " ]]; then
   warning="$warning
-  - agent-browser (browser automation, /test-browser, /feature-video, design agents)
+  - [OPTIONAL] agent-browser — browser automation, /test-browser, /feature-video, design agents
     Install: npm install -g agent-browser && agent-browser install"
 fi
 
 if [[ " ${missing[*]} " =~ " rclone " ]]; then
   warning="$warning
-  - rclone (cloud file uploads for /feature-video)
+  - [OPTIONAL] rclone — cloud file uploads for /feature-video
     Install: https://rclone.org/install/"
 fi
 
 if [[ " ${missing[*]} " =~ " superpowers " ]]; then
   warning="$warning
-  - superpowers (REQUIRED — provides brainstorming, planning, execution, review primitives)
+  - [REQUIRED] superpowers — provides brainstorming, planning, execution, review primitives
     Install: /plugin marketplace add anthropics/claude-plugins-official
              /plugin install superpowers@claude-plugins-official"
 fi
 
 warning="$warning
-Run the install commands above to enable these features."
+Run the install commands above. [REQUIRED] dependencies must be installed for v3.0.0 workflow commands to work."
 
 echo "$warning" >&2
 exit 0
