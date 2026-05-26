@@ -40,9 +40,9 @@ Before going online, check if curated knowledge already exists in skills:
    - FastAPI → `fastapi-patterns`, `fastapi-sqlalchemy`
    - Frontend/Design → `frontend-design`, `swiss-design`
    - TypeScript/React → `react-best-practices`
-   - AI/Agents → `agent-native-architecture`, `create-agent-skills`
-   - Documentation → `compound-docs`, `every-style-editor`
-   - File operations → `rclone`, `git-worktree`
+   - AI/Agents → `agent-native-architecture`
+   - Documentation → `every-style-editor`
+   - File operations → `rclone`
    - Image generation → `gemini-imagegen`
 
 3. **Extract Patterns from Skills**:

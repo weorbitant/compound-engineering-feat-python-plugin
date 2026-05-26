@@ -53,7 +53,7 @@ skills/
 
 ## Skill Compliance Checklist
 
-When adding or modifying skills, verify compliance with skill-creator spec:
+When adding or modifying skills, verify compliance with the official skill spec (see `superpowers:writing-skills`):
 
 ### YAML Frontmatter (Required)
 
