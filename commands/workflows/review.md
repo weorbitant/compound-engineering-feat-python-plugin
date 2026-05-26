@@ -1,514 +1,122 @@
 ---
 name: workflows:review
-description: Perform exhaustive code reviews using multi-agent analysis, ultra-thinking, and worktrees
-argument-hint: "[PR number, GitHub URL, branch name, or latest]"
+description: Multi-agent Python code review, delegating review orchestration to superpowers and supplying Python-specific reviewer agents from project config
+argument-hint: "[PR number, GitHub URL, branch name, or empty for current branch]"
 ---
 
-# Review Command
+# Review (Python)
 
-<command_purpose> Perform exhaustive code reviews using multi-agent analysis, ultra-thinking, and Git worktrees for deep local inspection. </command_purpose>
+This command is a thin wrapper around `superpowers:requesting-code-review`. It loads the Python reviewer agent roster from `compound-engineering.local.md`, supplies them to the superpowers orchestration, and adds Python-specific conditional agents for migrations.
 
-## Introduction
-
-<role>Senior Code Review Architect with expertise in security, performance, architecture, and quality assurance</role>
-
-## Prerequisites
-
-<requirements>
-- Git repository with GitHub CLI (`gh`) installed and authenticated
-- Clean main/master branch
-- Proper permissions to create worktrees and access the repository
-- For document reviews: Path to a markdown file or document
-</requirements>
-
-## Main Tasks
-
-### 1. Determine Review Target & Setup (ALWAYS FIRST)
+## Review Target
 
 <review_target> #$ARGUMENTS </review_target>
 
-<thinking>
-First, I need to determine the review target type and set up the code for analysis.
-</thinking>
+If empty, default to the current branch's diff against the project default branch.
 
-#### Immediate Actions:
+## Prerequisites
 
-<task_list>
+If the `superpowers:requesting-code-review` skill is not available, halt and instruct the user:
 
-- [ ] Determine review type: PR number (numeric), GitHub URL, file path (.md), or empty (current branch)
-- [ ] Check current git branch
-- [ ] If ALREADY on the target branch (PR branch, requested branch name, or the branch already checked out for review) → proceed with analysis on current branch
-- [ ] If DIFFERENT branch than the review target → offer to use worktree: "Use git-worktree skill for isolated Call `skill: git-worktree` with branch name
-- [ ] Fetch PR metadata using `gh pr view --json` for title, body, files, linked issues
-- [ ] Set up language-specific analysis tools
-- [ ] Prepare security scanning environment
-- [ ] Make sure we are on the branch we are reviewing. Use gh pr checkout to switch to the branch or manually checkout the branch.
+> "This command requires the `superpowers` plugin. Install it with:
+> `/plugin marketplace add anthropics/claude-plugins-official`
+> `/plugin install superpowers@claude-plugins-official`"
 
-Ensure that the code is ready for analysis (either in worktree or on current branch). ONLY then proceed to the next step.
+## Step 1: Determine target & checkout
 
-</task_list>
+1. Determine the review target type:
+   - Numeric → PR number; use `gh pr view --json` to fetch metadata.
+   - GitHub URL → extract PR number, then as above.
+   - File path ending in `.md` → document review; pass through to superpowers as a doc target.
+   - Empty → current branch.
+2. If the target is a PR and the current branch differs, switch via `gh pr checkout <num>` or use the `superpowers:using-git-worktrees` skill for an isolated worktree.
 
-#### Multi-Service Detection
+## Step 2: Microservice Detection
 
-**Auto-detect changed services from the PR diff:**
+Auto-detect changed services from the diff:
 
 ```bash
-git diff --name-only origin/main...HEAD | cut -d'/' -f1 | sort -u
+git diff --name-only origin/<default-branch>...HEAD | cut -d'/' -f1 | sort -u
 ```
 
-Cross-reference the top-level directories against discovered services (`Glob("*/pyproject.toml")`). This identifies which services were changed in the PR.
+Cross-reference the top-level directories against discovered services (`Glob("*/pyproject.toml")`). The intersection is the list of changed services.
 
-**If multiple services are detected:** Run review agents **per service independently** in the steps below. Each service gets its own set of review agents with findings scoped to that service.
+If multiple services are changed, invoke the `microservice-focus` skill to build a `<focus_context>` block scoped to those services. Per-service agent roster loading happens in Step 3.
 
-#### Protected Artifacts
-
-<protected_artifacts>
-The following paths are compound-engineering pipeline artifacts and must never be flagged for deletion, removal, or gitignore by any review agent:
-
-- `docs/plans/*.md` — Plan files created by `/workflows:plan`. These are living documents that track implementation progress (checkboxes are checked off by `/workflows:work`).
-- `docs/solutions/*.md` — Solution documents created during the pipeline.
-- `{service}/docs/plans/*.md` — Per-service plan files (microservice mode).
-- `{service}/docs/solutions/*.md` — Per-service solution documents (microservice mode).
-
-If a review agent flags any file in these directories for cleanup or removal, discard that finding during synthesis. Do not create a todo for it.
-</protected_artifacts>
-
-#### Load Review Agents
+## Step 3: Load Reviewer Roster
 
 **Single-service or non-microservice mode:**
-Read `compound-engineering.local.md` in the project root. If found, use `review_agents` from YAML frontmatter.
+Read `compound-engineering.local.md` in the project root. Use `review_agents` from the YAML frontmatter.
 
-**Multi-service mode (multiple services detected):**
-For each changed service, check `{service}/compound-engineering.local.md` first. If present, use its `review_agents` (allows different agents per service — e.g., Django agents for one service, FastAPI agents for another). Fall back to root-level `compound-engineering.local.md`.
+**Multi-service mode:**
+For each changed service, check `{service}/compound-engineering.local.md` first (allows per-service agent rosters — e.g., Django agents for one, FastAPI for another). Fall back to root-level `compound-engineering.local.md`.
 
-If no settings file exists, invoke the `setup` skill to create one. Then read the newly created file and continue.
+If no settings file exists, invoke the `setup` skill to create one. Read the new file and continue.
 
-#### Load Project Workflow Skills
+## Step 4: Load Project Workflow Skills
 
-Read `compound-engineering.local.md` in the project root (already loaded above for review agents). Parse `workflow_skills.review` from the YAML frontmatter.
+From the same `compound-engineering.local.md`, parse `workflow_skills.review`. Load each listed skill now. They provide Python-specific context that helps interpret review findings.
 
-If the key contains a non-empty list of skill names, load each listed skill now. These provide project-specific knowledge that helps contextualize review findings. They are additive — loaded alongside agents and skills already used by this command.
+## Step 5: Identify Conditional Agents
 
-#### Parallel Agents to review the PR:
+Some agents only run when the PR matches specific criteria:
 
-<parallel_tasks>
+**Migration agents** — run if the PR contains any of:
+- `*/migrations/*.py` (Django migrations)
+- `alembic/versions/*.py` (Alembic migrations)
+- Files modifying ID/enum/mapping columns
+- Data migration scripts or management commands
+- Title/body mentioning: migration, backfill, data transformation, ID mapping
 
-**Single-service mode:** Run all configured review agents in parallel:
+If matched, add to the agent roster:
+- `data-migration-expert` — validates data migrations, swapped IDs, rollback safety
+- `deployment-verification-agent` — Go/No-Go checklist with SQL verification queries
 
-```
-Task {agent-name}(PR content + review context from settings body)
-```
+## Step 6: Protected Artifacts
 
-**Multi-service mode:** For each changed service, run its configured agents in parallel. Include `<focus_context>` in each agent prompt so it scopes review to that service's files:
+When synthesizing findings, **discard any recommendations to delete or gitignore** files matching:
 
-```
-Task {agent-name}("Review changes in {service-name} only.
-<focus_context>
-  service: {service-name} (./{service-name})
-  changed_files: [list of changed files in this service]
-</focus_context>
-PR content + review context from settings body")
-```
+- `docs/plans/*.md`, `docs/superpowers/plans/*.md`
+- `docs/superpowers/specs/*.md`
+- `{service}/docs/plans/*.md`, `{service}/docs/superpowers/plans/*.md`
+- `{service}/docs/superpowers/specs/*.md`
 
-All per-service agents run in parallel across services. Findings are aggregated per service in the synthesis step.
+These are living pipeline artifacts. Do not create todos for their removal.
 
-Additionally, always run these regardless of settings:
-- Task agent-native-reviewer(PR content) - Verify new features are agent-accessible
-- Task learnings-researcher(PR content) - Search docs/solutions/ for past issues related to this PR's modules and patterns
+## Step 7: Delegate to superpowers
 
-</parallel_tasks>
+Invoke the `superpowers:requesting-code-review` skill. Pass:
 
-#### Conditional Agents (Run if applicable):
+- The review target (PR number, branch, or doc path).
+- The full agent roster from Step 3 (so superpowers spawns each in parallel).
+- The conditional migration agents from Step 5 (if applicable).
+- The `<focus_context>` block from Step 2 (multi-service mode).
+- The "protected artifacts" rule from Step 6 (so superpowers filters discardable findings).
+- Always-on agents to include alongside the roster:
+  - `agent-native-reviewer` — verifies new features are agent-accessible
 
-<conditional_agents>
+Note: this command does **NOT** spawn `learnings-researcher` (deleted in v3.0.0) and does NOT read `docs/solutions/` (knowledge-compounding pattern dropped).
 
-These agents are run ONLY when the PR matches specific criteria. Check the PR files list to determine if they apply:
+## Step 8: Synthesis & Todos
 
-**MIGRATIONS: If PR contains database migrations or schema changes:**
+The superpowers skill handles parallel agent execution and findings collection. After it returns, use the `file-todos` skill to create one todo file per finding under `todos/`, using the standard naming `{issue_id}-pending-{priority}-{description}.md`.
 
-- Task data-migration-expert(PR content) - Validates data migrations, checks for swapped values, verifies rollback safety
-- Task deployment-verification-agent(PR content) - Creates Go/No-Go deployment checklist with SQL verification queries
+If the user prefers an inline summary instead of todo files, surface findings in a categorized list (P1/P2/P3) without writing files.
 
-**When to run:**
-- PR includes files matching `*/migrations/*.py` (Django migrations)
-- PR includes files matching `alembic/versions/*.py` (Alembic migrations)
-- PR modifies columns that store IDs, enums, or mappings
-- PR includes data migration scripts or management commands
-- PR title/body mentions: migration, backfill, data transformation, ID mapping
+## Step 9: Browser Test Offer (Optional)
 
-**What these agents check:**
-- `data-migration-expert`: Verifies hard-coded mappings match production reality (prevents swapped IDs), checks for orphaned associations, validates dual-write patterns
-- `deployment-verification-agent`: Produces executable pre/post-deploy checklists with SQL queries, rollback procedures, and monitoring plans
+After synthesis, offer browser testing via `AskUserQuestion`:
 
-</conditional_agents>
+> "Want to run browser tests on the affected pages?"
+> 1. Yes — run `/test-browser`
+> 2. No — skip
 
-### 4. Ultra-Thinking Deep Dive Phases
+If the user accepts, spawn a sub-agent to run `/test-browser` for the PR. The sub-agent uses the `agent-browser` skill to capture snapshots and check for console errors.
 
-<ultrathink_instruction> For each phase below, spend maximum cognitive effort. Think step by step. Consider all angles. Question assumptions. And bring all reviews in a synthesis to the user.</ultrathink_instruction>
+## Output
 
-<deliverable>
-Complete system context map with component interactions
-</deliverable>
-
-#### Phase 3: Stakeholder Perspective Analysis
-
-<thinking_prompt> ULTRA-THINK: Put yourself in each stakeholder's shoes. What matters to them? What are their pain points? </thinking_prompt>
-
-<stakeholder_perspectives>
-
-1. **Developer Perspective** <questions>
-
-   - How easy is this to understand and modify?
-   - Are the APIs intuitive?
-   - Is debugging straightforward?
-   - Can I test this easily? </questions>
-
-2. **Operations Perspective** <questions>
-
-   - How do I deploy this safely?
-   - What metrics and logs are available?
-   - How do I troubleshoot issues?
-   - What are the resource requirements? </questions>
-
-3. **End User Perspective** <questions>
-
-   - Is the feature intuitive?
-   - Are error messages helpful?
-   - Is performance acceptable?
-   - Does it solve my problem? </questions>
-
-4. **Security Team Perspective** <questions>
-
-   - What's the attack surface?
-   - Are there compliance requirements?
-   - How is data protected?
-   - What are the audit capabilities? </questions>
-
-5. **Business Perspective** <questions>
-   - What's the ROI?
-   - Are there legal/compliance risks?
-   - How does this affect time-to-market?
-   - What's the total cost of ownership? </questions> </stakeholder_perspectives>
-
-#### Phase 4: Scenario Exploration
-
-<thinking_prompt> ULTRA-THINK: Explore edge cases and failure scenarios. What could go wrong? How does the system behave under stress? </thinking_prompt>
-
-<scenario_checklist>
-
-- [ ] **Happy Path**: Normal operation with valid inputs
-- [ ] **Invalid Inputs**: Null, empty, malformed data
-- [ ] **Boundary Conditions**: Min/max values, empty collections
-- [ ] **Concurrent Access**: Race conditions, deadlocks
-- [ ] **Scale Testing**: 10x, 100x, 1000x normal load
-- [ ] **Network Issues**: Timeouts, partial failures
-- [ ] **Resource Exhaustion**: Memory, disk, connections
-- [ ] **Security Attacks**: Injection, overflow, DoS
-- [ ] **Data Corruption**: Partial writes, inconsistency
-- [ ] **Cascading Failures**: Downstream service issues </scenario_checklist>
-
-### 6. Multi-Angle Review Perspectives
-
-#### Technical Excellence Angle
-
-- Code craftsmanship evaluation
-- Engineering best practices
-- Technical documentation quality
-- Tooling and automation assessment
-
-#### Business Value Angle
-
-- Feature completeness validation
-- Performance impact on users
-- Cost-benefit analysis
-- Time-to-market considerations
-
-#### Risk Management Angle
-
-- Security risk assessment
-- Operational risk evaluation
-- Compliance risk verification
-- Technical debt accumulation
-
-#### Team Dynamics Angle
-
-- Code review etiquette
-- Knowledge sharing effectiveness
-- Collaboration patterns
-- Mentoring opportunities
-
-### 4. Simplification and Minimalism Review
-
-Run the Task code-simplicity-reviewer() to see if we can simplify the code.
-
-### 5. Findings Synthesis and Todo Creation Using file-todos Skill
-
-<critical_requirement> ALL findings MUST be stored in the todos/ directory using the file-todos skill. Create todo files immediately after synthesis - do NOT present findings for user approval first. Use the skill for structured todo management. </critical_requirement>
-
-#### Step 1: Synthesize All Findings
-
-<thinking>
-Consolidate all agent reports into a categorized list of findings.
-Remove duplicates, prioritize by severity and impact.
-</thinking>
-
-<synthesis_tasks>
-
-- [ ] Collect findings from all parallel agents
-- [ ] Surface learnings-researcher results: if past solutions are relevant, flag them as "Known Pattern" with links to docs/solutions/ files
-- [ ] Discard any findings that recommend deleting or gitignoring files in `docs/plans/` or `docs/solutions/` (see Protected Artifacts above)
-- [ ] Categorize by type: security, performance, architecture, quality, etc.
-- [ ] Assign severity levels: 🔴 CRITICAL (P1), 🟡 IMPORTANT (P2), 🔵 NICE-TO-HAVE (P3)
-- [ ] Remove duplicate or overlapping findings
-- [ ] Estimate effort for each finding (Small/Medium/Large)
-
-</synthesis_tasks>
-
-#### Step 2: Create Todo Files Using file-todos Skill
-
-<critical_instruction> Use the file-todos skill to create todo files for ALL findings immediately. Do NOT present findings one-by-one asking for user approval. Create all todo files in parallel using the skill, then summarize results to user. </critical_instruction>
-
-**Implementation Options:**
-
-**Option A: Direct File Creation (Fast)**
-
-- Create todo files directly using Write tool
-- All findings in parallel for speed
-- Use standard template from `.claude/skills/file-todos/assets/todo-template.md`
-- Follow naming convention: `{issue_id}-pending-{priority}-{description}.md`
-
-**Option B: Sub-Agents in Parallel (Recommended for Scale)** For large PRs with 15+ findings, use sub-agents to create finding files in parallel:
-
-```bash
-# Launch multiple finding-creator agents in parallel
-Task() - Create todos for first finding
-Task() - Create todos for second finding
-Task() - Create todos for third finding
-etc. for each finding.
-```
-
-Sub-agents can:
-
-- Process multiple findings simultaneously
-- Write detailed todo files with all sections filled
-- Organize findings by severity
-- Create comprehensive Proposed Solutions
-- Add acceptance criteria and work logs
-- Complete much faster than sequential processing
-
-**Execution Strategy:**
-
-1. Synthesize all findings into categories (P1/P2/P3)
-2. Group findings by severity
-3. Launch 3 parallel sub-agents (one per severity level)
-4. Each sub-agent creates its batch of todos using the file-todos skill
-5. Consolidate results and present summary
-
-**Process (Using file-todos Skill):**
-
-1. For each finding:
-
-   - Determine severity (P1/P2/P3)
-   - Write detailed Problem Statement and Findings
-   - Create 2-3 Proposed Solutions with pros/cons/effort/risk
-   - Estimate effort (Small/Medium/Large)
-   - Add acceptance criteria and work log
-
-2. Use file-todos skill for structured todo management:
-
-   ```bash
-   skill: file-todos
-   ```
-
-   The skill provides:
-
-   - Template location: `.claude/skills/file-todos/assets/todo-template.md`
-   - Naming convention: `{issue_id}-{status}-{priority}-{description}.md`
-   - YAML frontmatter structure: status, priority, issue_id, tags, dependencies
-   - All required sections: Problem Statement, Findings, Solutions, etc.
-
-3. Create todo files in parallel:
-
-   ```bash
-   {next_id}-pending-{priority}-{description}.md
-   ```
-
-4. Examples:
-
-   ```
-   001-pending-p1-path-traversal-vulnerability.md
-   002-pending-p1-api-response-validation.md
-   003-pending-p2-concurrency-limit.md
-   004-pending-p3-unused-parameter.md
-   ```
-
-5. Follow template structure from file-todos skill: `.claude/skills/file-todos/assets/todo-template.md`
-
-**Todo File Structure (from template):**
-
-Each todo must include:
-
-- **YAML frontmatter**: status, priority, issue_id, tags, dependencies
-- **Problem Statement**: What's broken/missing, why it matters
-- **Findings**: Discoveries from agents with evidence/location
-- **Proposed Solutions**: 2-3 options, each with pros/cons/effort/risk
-- **Recommended Action**: (Filled during triage, leave blank initially)
-- **Technical Details**: Affected files, components, database changes
-- **Acceptance Criteria**: Testable checklist items
-- **Work Log**: Dated record with actions and learnings
-- **Resources**: Links to PR, issues, documentation, similar patterns
-
-**File naming convention:**
-
-```
-{issue_id}-{status}-{priority}-{description}.md
-
-Examples:
-- 001-pending-p1-security-vulnerability.md
-- 002-pending-p2-performance-optimization.md
-- 003-pending-p3-code-cleanup.md
-```
-
-**Status values:**
-
-- `pending` - New findings, needs triage/decision
-- `ready` - Approved by manager, ready to work
-- `complete` - Work finished
-
-**Priority values:**
-
-- `p1` - Critical (blocks merge, security/data issues)
-- `p2` - Important (should fix, architectural/performance)
-- `p3` - Nice-to-have (enhancements, cleanup)
-
-**Tagging:** Always add `code-review` tag, plus: `security`, `performance`, `architecture`, `python, django, fastapi`, `quality`, etc.
-
-#### Step 3: Summary Report
-
-After creating all todo files, present comprehensive summary:
-
-````markdown
-## ✅ Code Review Complete
-
-**Review Target:** PR #XXXX - [PR Title] **Branch:** [branch-name]
-
-### Findings Summary:
-
-- **Total Findings:** [X]
-- **🔴 CRITICAL (P1):** [count] - BLOCKS MERGE
-- **🟡 IMPORTANT (P2):** [count] - Should Fix
-- **🔵 NICE-TO-HAVE (P3):** [count] - Enhancements
-
-### Created Todo Files:
-
-**P1 - Critical (BLOCKS MERGE):**
-
-- `001-pending-p1-{finding}.md` - {description}
-- `002-pending-p1-{finding}.md` - {description}
-
-**P2 - Important:**
-
-- `003-pending-p2-{finding}.md` - {description}
-- `004-pending-p2-{finding}.md` - {description}
-
-**P3 - Nice-to-Have:**
-
-- `005-pending-p3-{finding}.md` - {description}
-
-### Review Agents Used:
-
-- python-style-reviewer
-- security-sentinel
-- performance-oracle
-- architecture-strategist
-- agent-native-reviewer
-- [other agents]
-
-### Next Steps:
-
-1. **Address P1 Findings**: CRITICAL - must be fixed before merge
-
-   - Review each P1 todo in detail
-   - Implement fixes or request exemption
-   - Verify fixes before merging PR
-
-2. **Triage All Todos**:
-   ```bash
-   ls todos/*-pending-*.md  # View all pending todos
-   /triage                  # Use slash command for interactive triage
-   ```
-````
-
-3. **Work on Approved Todos**:
-
-   ```bash
-   /resolve_todo_parallel  # Fix all approved items efficiently
-   ```
-
-4. **Track Progress**:
-   - Rename file when status changes: pending → ready → complete
-   - Update Work Log as you work
-   - Commit todos: `git add todos/ && git commit -m "refactor: add code review findings"`
-
-### Severity Breakdown:
-
-**🔴 P1 (Critical - Blocks Merge):**
-
-- Security vulnerabilities
-- Data corruption risks
-- Breaking changes
-- Critical architectural issues
-
-**🟡 P2 (Important - Should Fix):**
-
-- Performance issues
-- Significant architectural concerns
-- Major code quality problems
-- Reliability issues
-
-**🔵 P3 (Nice-to-Have):**
-
-- Minor improvements
-- Code cleanup
-- Optimization opportunities
-- Documentation updates
-
-```
-
-### 7. End-to-End Testing (Optional)
-
-<offer_testing>
-
-After presenting the Summary Report, offer browser testing:
-
-```markdown
-**"Want to run browser tests on the affected pages?"**
-1. Yes - run `/test-browser`
-2. No - skip
-```
-
-</offer_testing>
-
-#### If User Accepts Web Testing:
-
-Spawn a subagent to run browser tests (preserves main context):
-
-```
-Task general-purpose("Run /test-browser for PR #[number]. Test all affected pages, check for console errors, handle failures by creating todos and fixing.")
-```
-
-The subagent will:
-1. Identify pages affected by the PR
-2. Navigate to each page and capture snapshots (using agent-browser CLI)
-3. Check for console errors
-4. Test critical interactions
-5. Pause for human verification on OAuth/email/payment flows
-6. Create P1 todos for any failures
-7. Fix and retry until all tests pass
-
-**Standalone:** `/test-browser [PR number]`
-
-### Important: P1 Findings Block Merge
-
-Any **🔴 P1 (CRITICAL)** findings must be addressed before merging the PR. Present these prominently and ensure they're resolved before accepting the PR.
-```
+Summarize:
+- PR/branch reviewed.
+- Number of P1/P2/P3 findings.
+- Path to todos/ (if file-todos was used).
+- Next-step recommendation (e.g., "Address P1 findings before merging").
