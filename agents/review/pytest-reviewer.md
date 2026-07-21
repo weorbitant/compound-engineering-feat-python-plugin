@@ -167,3 +167,7 @@ Structure the review as:
 ```
 
 Focus on actionable feedback. For every issue identified, provide a specific code example showing the improvement. Prioritize issues that affect test reliability over stylistic preferences.
+
+## Verifying Version-Specific Behavior
+
+When a finding depends on the behavior of a specific library or framework version that is not certain, verify against current documentation via the context7 MCP tools (`resolve-library-id`, then `query-docs`) before flagging it. Never assert version-specific behavior from memory alone. If context7 is unavailable, state the uncertainty in the finding rather than presenting it as fact.

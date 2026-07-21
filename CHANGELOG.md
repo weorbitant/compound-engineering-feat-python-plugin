@@ -5,6 +5,51 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-07-21
+
+### Changed (BREAKING)
+- **Plugin renamed to `py-micro-superpowers`** ("Superpowers for Python
+  microservices"). The repository URL is unchanged. Reinstall with
+  `/plugin install py-micro-superpowers@py-micro-superpowers`. Command/skill/agent
+  prefixes change from `compound-engineering-feat-python:` to `py-micro-superpowers:`.
+- **Project config renamed** to `py-micro-superpowers.local.md`. A legacy
+  `compound-engineering.local.md` is still read as a fallback, and `/setup`
+  migrates it on next run.
+- **Agent roster consolidated 32 → 25** (merged overlapping reviewers; no domain
+  coverage lost):
+  - `django-migration-reviewer` + `data-migration-expert` + `schema-drift-detector`
+    → **`migration-reviewer`** (opus): migration safety, data-migration validation,
+    and drift detection for both Django and Alembic.
+  - `fastapi-sqlalchemy-reviewer` → merged into **`fastapi-reviewer`** (application
+    layer + data layer checklists).
+  - `python-style-reviewer` + `python-typing-reviewer` → **`python-quality-reviewer`**.
+  - `pattern-recognition-specialist` → merged into **`architecture-strategist`**.
+  - `figma-design-sync` → merged into **`design-implementation-reviewer`**
+    (review-only and iterative fix modes).
+  - `framework-docs-researcher` → merged into **`best-practices-researcher`**
+    (official docs + community best practices, one output contract).
+  Update any `review_agents` rosters in project config to the new names.
+- `performance-oracle` refocused on Python: frontend/bundle-size review criteria
+  replaced with serialization cost, async event-loop blocking, and memory
+  profiling guidance.
+
+### Removed
+- Deprecated command shims `/lfg`, `/slfg`, and `/workflows:compound` (deprecated
+  since v3.0.0).
+- `/deploy-docs` command — it referenced a `plugins/compound-engineering/`
+  monorepo layout that does not exist in this repository and could never run.
+
+### Added
+- Domain reviewers (12 of 16 review agents) now carry a standing instruction to
+  verify uncertain version-specific library behavior against live documentation
+  via the bundled context7 MCP server before flagging it, instead of asserting
+  from model memory.
+- `scripts/validate.sh` + GitHub Actions workflow: CI now enforces frontmatter
+  integrity, reference-link resolution, no bare backtick refs, Python script
+  compilation, stale-reference guards, and component-count consistency.
+- README overhauled: hero banner (SVG), badges, workflow diagram, updated
+  agent/command/skill tables.
+
 ## [3.0.1] - 2026-07-21
 
 ### Changed

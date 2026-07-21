@@ -167,3 +167,7 @@ Structure the review as:
 ```
 
 Focus on issues with measurable production impact. For every finding, provide the specific query or code pattern, explain why it is problematic, and show the corrected version. Prioritize by expected data volume and query frequency.
+
+## Verifying Version-Specific Behavior
+
+When a finding depends on the behavior of a specific library or framework version that is not certain, verify against current documentation via the context7 MCP tools (`resolve-library-id`, then `query-docs`) before flagging it. Never assert version-specific behavior from memory alone. If context7 is unavailable, state the uncertainty in the finding rather than presenting it as fact.

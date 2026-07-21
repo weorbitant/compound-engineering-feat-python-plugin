@@ -1,43 +1,60 @@
-# Compound Engineering feat. Python
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="py-micro-superpowers — Superpowers for Python microservices" width="100%">
+</p>
 
-A Claude Code plugin that supercharges Python development with 32 specialized agents, 18 commands, 21 skills, and an MCP server — built on Anthropic's `superpowers` plugin for workflow primitives. Specialized for Django, FastAPI, pytest, Pydantic, PostgreSQL, and PostGIS projects, with first-class support for multi-service monorepos.
+<h1 align="center">py-micro-superpowers</h1>
 
-> Fork of [Compound Engineering Plugin](https://github.com/EveryInc/compound-engineering-plugin) by [Kieran Klaassen](https://github.com/kieranklaassen), fully rewritten for the Python ecosystem.
+<p align="center"><strong>Superpowers for Python microservices.</strong></p>
+
+<p align="center">
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-4.0.0-6366f1" alt="Version 4.0.0"></a>
+  <img src="https://img.shields.io/badge/agents-25-4b8bbe" alt="25 agents">
+  <img src="https://img.shields.io/badge/commands-17-4b8bbe" alt="17 commands">
+  <img src="https://img.shields.io/badge/skills-21-4b8bbe" alt="21 skills">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT license"></a>
+</p>
+
+A Claude Code plugin that gives Claude deep knowledge of the Python ecosystem — Django, FastAPI, pytest, Pydantic, Celery, PostgreSQL, PostGIS — and first-class support for multi-service monorepos. Built on Anthropic's [`superpowers`](https://github.com/obra/superpowers) plugin: superpowers owns the engineering process (brainstorm → plan → execute → review), this plugin supplies the Python domain expertise and microservice orchestration.
+
+> Formerly `compound-engineering-feat-python`. Originally forked from [Compound Engineering Plugin](https://github.com/EveryInc/compound-engineering-plugin) by [Kieran Klaassen](https://github.com/kieranklaassen), fully rewritten for the Python ecosystem.
 
 ## What It Does
-
-Instead of generic AI assistance, this plugin gives Claude deep knowledge of Python frameworks and enforces a structured engineering workflow:
 
 ```
 /workflows:brainstorm → /workflows:plan → /workflows:work → /workflows:review
 ```
 
-Each step loads relevant skills (Django patterns, pytest conventions, PostgreSQL optimization...), spawns specialized review agents, and enforces quality gates — tests must pass, linting must be clean, pre-commit hooks must succeed — before anything ships.
+Each step loads relevant skills (Django patterns, pytest conventions, PostgreSQL optimization…), spawns specialized review agents, and enforces quality gates — tests must pass, linting must be clean, pre-commit hooks must succeed — before anything ships.
+
+```mermaid
+flowchart LR
+    B["/workflows:brainstorm"] -->|spec| P["/workflows:plan"]
+    P -->|plan| W["/workflows:work"]
+    W -->|branch + commits| R["/workflows:review"]
+    R -->|todos| W
+    S[superpowers plugin<br/>process primitives] -.-> B & P & W & R
+    K[Python skills +<br/>review agents] -.-> B & P & W & R
+```
+
+For monorepos, every command detects your services (`*/pyproject.toml`), scopes work to the ones you pick, executes plans in dependency order, and propagates a `<focus_context>` block to every sub-agent so nested delegation never loses track of which service it is working on.
 
 ## Installation
 
-### Prerequisite: Install superpowers
-
-This plugin requires the `superpowers` plugin (provides generic workflow primitives).
+Requires the `superpowers` plugin (process primitives):
 
 ```
 /plugin marketplace add anthropics/claude-plugins-official
 /plugin install superpowers@claude-plugins-official
 ```
 
-This plugin is distributed as its own Claude Code marketplace. Add the repo, then install:
+Then add this repo as a marketplace and install:
 
 ```
 /plugin marketplace add weorbitant/compound-engineering-feat-python-plugin
-/plugin install compound-engineering-feat-python@compound-engineering-feat-python
+/plugin install py-micro-superpowers@py-micro-superpowers
 ```
 
-To install from a local clone instead:
-
-```
-/plugin marketplace add /path/to/compound-engineering-feat-python-plugin
-/plugin install compound-engineering-feat-python@compound-engineering-feat-python
-```
+To install from a local clone, use `/plugin marketplace add /path/to/checkout` instead.
 
 ### Optional Dependencies
 
@@ -68,19 +85,19 @@ Brainstorm specs land at `docs/superpowers/specs/`; plans at `docs/superpowers/p
 
 ## Core Workflow Commands
 
-Commands use `workflows:` prefix to avoid collisions with Claude Code built-ins (`/plan`, `/review`).
+Commands use the `workflows:` prefix to avoid collisions with Claude Code built-ins (`/plan`, `/review`).
 
 | Command | Purpose |
 |---------|---------|
 | `/workflows:brainstorm` | Explore requirements before planning (delegates to `superpowers:brainstorming`) |
 | `/workflows:plan` | Generate implementation plans (delegates to `superpowers:writing-plans`) |
-| `/workflows:work` | Execute a plan with Python quality gates (delegates to `superpowers:executing-plans`) |
+| `/workflows:work` | Execute a plan with Python quality gates (delegates to `superpowers:subagent-driven-development` / `superpowers:executing-plans`) |
 | `/workflows:review` | Multi-agent Python code review (delegates to `superpowers:requesting-code-review`) |
 
 Each workflow command:
-- Loads project-specific skills from `compound-engineering.local.md` configuration
+- Loads project-specific skills from the `py-micro-superpowers.local.md` configuration
 - Auto-detects multi-service monorepos and adjusts behavior accordingly
-- Propagates service context to all sub-agents to prevent information loss
+- Propagates service context to all sub-agents to prevent focus loss
 
 ## Utility Commands
 
@@ -96,87 +113,46 @@ Each workflow command:
 | `/triage` | Triage and prioritize issues |
 | `/test-browser` | Browser tests on PR-affected pages |
 | `/agent-native-audit` | Architecture review against 8 agent-native principles |
-| `/deploy-docs` | Deploy documentation |
 | `/feature-video` | Record video walkthroughs and attach to PR |
 | `/report-bug` | Report a plugin bug |
 | `/heal-skill` | Fix skill documentation issues |
 
-### Deprecated commands (v3.0.0)
+## Agents (25)
 
-These commands were removed in v3.0.0; they remain as shims that print a migration message and will be deleted in v4.0.0:
+Agents run as sub-processes during workflows, grouped by specialization. A 3-tier model strategy keeps cost proportional to stakes:
 
-- `/workflows:compound` — knowledge-capture pattern dropped; no replacement.
-- `/lfg`, `/slfg` — autonomous pipelines dropped; orchestrate stages directly.
+- **Opus** — high-stakes judgment: architecture, security, migrations, data integrity, performance
+- **Sonnet** — domain review and research: framework reviewers, researchers, design agents
+- **Haiku** — mechanical tasks: linting and type-checking
 
-See CHANGELOG.md v3.0.0 for migration details.
+Reviewers work from baked-in checklists with PASS/FAIL code examples, backed by the plugin's skills for deep reference. When a finding hinges on version-specific library behavior they aren't certain of, they verify it against live docs through the bundled context7 MCP server rather than asserting from memory.
 
-## Agents (32)
-
-Agents run as sub-processes during workflows. They are grouped by specialization.
-
-Agents use a 3-tier model strategy to optimize cost without sacrificing quality:
-
-- **Opus** — High-stakes decisions: architecture, security, data integrity, performance, deployment
-- **Sonnet** — Domain review and research: framework-specific reviewers, researchers, design agents
-- **Haiku** — Mechanical tasks: linting, style checks, pattern lookups, drift detection
-
-### Review — Python Core
+### Review
 
 | Agent | Model | Focus |
 |-------|-------|-------|
-| `python-style-reviewer` | haiku | PEP 8, naming, imports, modern syntax |
-| `python-typing-reviewer` | sonnet | Type annotations, Pydantic models, generics |
-| `pattern-recognition-specialist` | sonnet | Code patterns and anti-patterns |
-
-### Review — Django
-
-| Agent | Model | Focus |
-|-------|-------|-------|
+| `python-quality-reviewer` | sonnet | PEP 8 style, modern syntax, type annotations, Pydantic v2 |
 | `django-reviewer` | sonnet | Models, views, URLs, admin, signals, middleware, Ninja |
 | `django-drf-reviewer` | sonnet | DRF serializers, viewsets, permissions, pagination |
 | `django-celery-reviewer` | sonnet | Task design, idempotency, retry strategy, queue routing |
-| `django-migration-reviewer` | sonnet | Migration safety, reversibility, lock impact, zero-downtime |
-
-### Review — FastAPI
-
-| Agent | Model | Focus |
-|-------|-------|-------|
-| `fastapi-reviewer` | sonnet | Routes, DI, async correctness, OpenAPI |
-| `fastapi-sqlalchemy-reviewer` | sonnet | Session lifecycle, query patterns, Alembic migrations |
-
-### Review — Testing & Database
-
-| Agent | Model | Focus |
-|-------|-------|-------|
+| `fastapi-reviewer` | sonnet | Routes, DI, async correctness, OpenAPI + SQLAlchemy data layer, Alembic |
 | `pytest-reviewer` | sonnet | Fixtures, isolation, assertions, mocking, async |
 | `postgresql-reviewer` | sonnet | Query optimization, indexing, connection pooling |
 | `postgis-reviewer` | sonnet | SRID consistency, spatial indexing, GeoDjango |
-
-### Review — Strategic (Opus)
-
-| Agent | Model | Focus |
-|-------|-------|-------|
-| `architecture-strategist` | opus | Architectural decisions and compliance |
-| `data-integrity-guardian` | opus | Database migrations and data integrity |
-| `data-migration-expert` | opus | ID mapping validation, swapped value detection |
+| `migration-reviewer` | opus | Migration safety, data-migration validation, schema drift (Django + Alembic) |
+| `architecture-strategist` | opus | Architectural integrity, patterns, anti-patterns, duplication |
+| `data-integrity-guardian` | opus | Data models, constraints, transactions, privacy |
 | `deployment-verification-agent` | opus | Go/No-Go deployment checklists |
-| `performance-oracle` | opus | Performance analysis and optimization |
-| `security-sentinel` | opus | Security audits and vulnerability assessment |
-
-### Review — General
-
-| Agent | Model | Focus |
-|-------|-------|-------|
+| `performance-oracle` | opus | Algorithmic complexity, queries, async runtime, memory |
+| `security-sentinel` | opus | Security audits and OWASP compliance |
 | `agent-native-reviewer` | sonnet | Action + context parity for agent-native features |
 | `code-simplicity-reviewer` | sonnet | Final pass for simplicity and minimalism |
-| `schema-drift-detector` | haiku | Unrelated schema changes in PRs |
 
 ### Research
 
 | Agent | Model | Focus |
 |-------|-------|-------|
-| `best-practices-researcher` | sonnet | External best practices (checks skills first) |
-| `framework-docs-researcher` | sonnet | Framework documentation and patterns |
+| `best-practices-researcher` | sonnet | Official docs, version constraints, community best practices |
 | `git-history-analyzer` | sonnet | Git history and code evolution |
 | `repo-research-analyst` | sonnet | Repository structure and conventions |
 
@@ -184,9 +160,8 @@ Agents use a 3-tier model strategy to optimize cost without sacrificing quality:
 
 | Agent | Model | Focus |
 |-------|-------|-------|
-| `design-implementation-reviewer` | sonnet | UI vs Figma design comparison |
+| `design-implementation-reviewer` | sonnet | UI vs Figma comparison, with iterative fix mode |
 | `design-iterator` | sonnet | Iterative UI refinement |
-| `figma-design-sync` | sonnet | Figma ↔ web synchronization |
 
 ### Workflow
 
@@ -199,9 +174,7 @@ Agents use a 3-tier model strategy to optimize cost without sacrificing quality:
 
 ## Skills (21)
 
-Skills provide domain knowledge that agents and workflows load on demand. They contain reference documentation, conventions, and patterns.
-
-Workflow primitives (brainstorming, git worktrees, skill writing, parallel agents) now come from the `superpowers` plugin.
+Skills provide domain knowledge that agents and workflows load on demand — reference documentation, conventions, and patterns. Process primitives (brainstorming, planning, TDD, git worktrees, parallel agents) come from the `superpowers` plugin.
 
 ### Python Core
 - **`python-style`** — PEP 8, naming, imports, logging with emoji prefixes
@@ -224,11 +197,11 @@ Workflow primitives (brainstorming, git worktrees, skill writing, parallel agent
 - **`postgis-patterns`** — Spatial queries, GeoDjango, GeoAlchemy2
 
 ### Architecture & Design
-- **`agent-native-architecture`** — Agent-native app patterns (action parity, context injection, shared workspace, dynamic capability discovery)
+- **`agent-native-architecture`** — Agent-native app patterns (action parity, context injection, shared workspace)
 - **`frontend-design`** — Production-grade frontend interfaces
 
 ### Microservice Support
-- **`microservice-focus`** — Service discovery, `--services` parsing, multi-service prompting, and `<focus_context>` block construction
+- **`microservice-focus`** — Service discovery, `--services` parsing, multi-service prompting, `<focus_context>` construction
 
 ### Development Tools
 - **`setup`** — Interactive project configuration for review agents and workflow skills
@@ -248,21 +221,14 @@ Workflow primitives (brainstorming, git worktrees, skill writing, parallel agent
 
 | Server | Description | Tools |
 |--------|-------------|-------|
-| `context7` | Framework documentation lookup | `resolve-library-id`, `get-library-docs` |
+| `context7` | Framework documentation lookup | `resolve-library-id`, `query-docs` |
 
-Supports 100+ frameworks including Django, FastAPI, SQLAlchemy, Celery, and more. Starts automatically when the plugin is enabled.
-
-### Known Issue: MCP Server Not Auto-Loading
-
-If Context7 doesn't load automatically, add it manually to `.claude/settings.json`:
+Supports 100+ frameworks including Django, FastAPI, SQLAlchemy, Celery, and more. Starts automatically when the plugin is enabled. If it doesn't, add it manually to `.claude/settings.json`:
 
 ```json
 {
   "mcpServers": {
-    "context7": {
-      "type": "http",
-      "url": "https://mcp.context7.com/mcp"
-    }
+    "context7": { "type": "http", "url": "https://mcp.context7.com/mcp" }
   }
 }
 ```
@@ -271,7 +237,7 @@ If Context7 doesn't load automatically, add it manually to `.claude/settings.jso
 
 ### Workflow Skills
 
-Customize which skills load per workflow via `compound-engineering.local.md` in your project root:
+Customize which skills load per workflow via `py-micro-superpowers.local.md` in your project root (a legacy `compound-engineering.local.md` is still honored):
 
 ```yaml
 ---
@@ -285,25 +251,23 @@ workflow_skills:
 
 Skills are **additive** — loaded alongside each command's built-in skills. Project-local skills in `.claude/skills/` can also be referenced by name.
 
-Run `/setup` to configure interactively.
-
 ### Review Agents
 
-The `/setup` skill auto-detects your stack (Django, FastAPI, DRF, Celery, SQLAlchemy, PostgreSQL, PostGIS, Pydantic) and configures which review agents run during `/workflows:review`. Settings are written to `compound-engineering.local.md`.
+Run `/setup` — it auto-detects your stack (Django, FastAPI, DRF, Celery, SQLAlchemy, PostgreSQL, PostGIS, Pydantic) and writes the `review_agents` roster used by `/workflows:review` into `py-micro-superpowers.local.md`.
 
 ## Microservice Support
 
-For multi-service monorepos, the plugin provides. Focus Gate logic now lives in the `microservice-focus` skill, invoked once by each workflow command.
+Focus Gate logic lives in the `microservice-focus` skill, invoked once by each workflow command:
 
-- **Auto-detection** — Discovers services via `*/pyproject.toml` at root level
-- **Focus Gate** — Each workflow command prompts for relevant services (or accepts `--services` argument)
-- **Dependency-aware execution** — Plans with `services:` YAML frontmatter execute in topological order
-- **Per-service context** — Loads each service's README, dependencies, and structure before acting
-- **Stack-aware routing** — Applies Django patterns to Django services, FastAPI to FastAPI, etc.
+- **Auto-detection** — discovers services via `*/pyproject.toml` at root level
+- **Focus Gate** — each workflow command prompts for relevant services (or accepts `--services`)
+- **Dependency-aware execution** — plans with `services:` YAML frontmatter execute in topological order (wavefront pattern)
+- **Per-service context** — loads each service's README, dependencies, and structure before acting
+- **Stack-aware routing** — Django patterns for Django services, FastAPI for FastAPI, per-service agent rosters
 
 ### Pipeline Mode
 
-All workflow commands accept `--services` for automated invocation:
+All workflow commands accept `--services` for automated invocation (skips all interactive prompts):
 
 ```bash
 /workflows:brainstorm --services order-service,payment-service "add cross-service event bus"
@@ -318,22 +282,24 @@ All workflow commands accept `--services` for automated invocation:
 
 ## How It Works
 
-### The `/workflows:work` Pipeline
+`/workflows:work` is the engine that turns plans into shipped code:
 
-The work command is the engine that turns plans into shipped code:
+1. **Load context** — project workflow skills + microservice focus gate (execution order for multi-service plans)
+2. **Delegate execution** — `superpowers:subagent-driven-development` runs the task loop with per-task commits and reviews
+3. **Python quality gate (mandatory)** — full pytest suite + ruff + mypy + pre-commit hooks must all pass; loops until clean
+4. **Ship** — commit via the `commit` skill, push, open a PR that includes a Post-Deploy Monitoring & Validation plan
 
-1. **Phase 1 — Quick Start** (opus): Read plan, clarify ambiguities, set up branch/worktree, create task list
-2. **Phase 2 — Execute** (sonnet sub-agent): Task loop with incremental commits, system-wide test checks, pattern matching — runs on Sonnet for cost efficiency
-3. **Phase 3 — Quality Gate** (opus, mandatory): Full test suite + linting + pre-commit hooks must all pass. Blocks shipping until clean.
-4. **Phase 4 — Ship It** (opus): Create commit via `/commit` skill, push, open PR with monitoring plan
+Never ships with failing tests, never skips hooks.
 
-Every commit goes through a test-and-fix gate: run tests → fix failures → stage → commit → if pre-commit fails → fix → re-test → retry. Never ships with failing tests, never skips hooks.
+## Development
+
+`scripts/validate.sh` runs the structural checks CI enforces on every push: frontmatter integrity, reference-link resolution, script compilation, stale-reference guards, and component-count consistency.
 
 ## Version History
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 3.0.1**
+**Current version: 4.0.0** — renamed from `compound-engineering-feat-python`; the repository URL is unchanged.
 
 ## Contributing
 
@@ -341,8 +307,8 @@ Contributions are welcome. The plugin is open source under the MIT license.
 
 1. Fork the repo and create a feature branch
 2. Follow the conventions encoded in the plugin's own skills (PEP 8, type hints, pytest, conventional commits)
-3. Run the plugin against itself: `/workflows:review` before opening a PR
-4. Open a PR against `main` — include a short rationale and any relevant plan/solution docs
+3. Run `./scripts/validate.sh` and the plugin against itself (`/workflows:review`) before opening a PR
+4. Open a PR against `main` — include a short rationale and any relevant plan/spec docs
 
 Issues, ideas, and discussion: [GitHub Issues](https://github.com/weorbitant/compound-engineering-feat-python-plugin/issues).
 

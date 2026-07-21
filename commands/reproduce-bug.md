@@ -13,8 +13,8 @@ Look at github issue #$ARGUMENTS and read the issue description and comments.
 
 Run the following research agents in parallel to investigate the bug:
 
-1. Task compound-engineering:research:repo-research-analyst(issue_description)
-2. Task compound-engineering:research:git-history-analyzer(issue_description)
+1. Task py-micro-superpowers:research:repo-research-analyst(issue_description)
+2. Task py-micro-superpowers:research:git-history-analyzer(issue_description)
 
 Think about the places it could go wrong looking at the codebase. Look for logging output we can look for.
 

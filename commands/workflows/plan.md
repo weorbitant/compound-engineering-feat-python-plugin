@@ -24,7 +24,7 @@ If the `superpowers:writing-plans` skill is not available, halt and instruct the
 
 ## Step 1: Load Project Workflow Skills
 
-Read `compound-engineering.local.md` in the project root. If `workflow_skills.plan` is set, load each listed skill now. They inform the plan with Python/Django/domain-specific patterns.
+Read `py-micro-superpowers.local.md` in the project root (if it doesn't exist but a legacy `compound-engineering.local.md` does, read that — same schema). If `workflow_skills.plan` is set, load each listed skill now. They inform the plan with Python/Django/domain-specific patterns.
 
 ## Step 2: Microservice Focus
 

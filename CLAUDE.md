@@ -1,4 +1,4 @@
-# Compounding Engineering Plugin Development
+# py-micro-superpowers Plugin Development
 
 ## Versioning Requirements
 
@@ -23,6 +23,7 @@ Before committing ANY changes:
 - [ ] README.md component counts verified
 - [ ] README.md tables accurate (agents, commands, skills)
 - [ ] plugin.json description matches current counts
+- [ ] `./scripts/validate.sh` passes (CI enforces it on push)
 
 ### Directory Structure
 
@@ -31,8 +32,7 @@ agents/
 ├── review/     # Code review agents
 ├── research/   # Research and analysis agents
 ├── design/     # Design and UI agents
-├── workflow/   # Workflow automation agents
-└── docs/       # Documentation agents
+└── workflow/   # Workflow automation agents
 
 commands/
 ├── workflows/  # Core workflow commands (workflows:plan, workflows:review, etc.)
@@ -124,7 +124,7 @@ All workflow commands accept `--services` argument for automated invocation:
 
 ## Workflow Skills Configuration
 
-Projects can inject additional skills into any workflow command via `compound-engineering.local.md`. Add a `workflow_skills` key to the YAML frontmatter:
+Projects can inject additional skills into any workflow command via `py-micro-superpowers.local.md`. Add a `workflow_skills` key to the YAML frontmatter:
 
 ```yaml
 ---

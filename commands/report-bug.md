@@ -1,13 +1,13 @@
 ---
 name: report-bug
-description: Report a bug in the compound-engineering-feat-python plugin
+description: Report a bug in the py-micro-superpowers plugin
 argument-hint: "[optional: brief description of the bug]"
 disable-model-invocation: true
 ---
 
-# Report a Compounding Engineering feat. Python Bug
+# Report a py-micro-superpowers Bug
 
-Report bugs encountered while using the compound-engineering-feat-python plugin. This command gathers structured information and creates a GitHub issue for the maintainer.
+Report bugs encountered while using the py-micro-superpowers plugin. This command gathers structured information and creates a GitHub issue for the maintainer.
 
 ## Step 1: Gather Bug Information
 
@@ -42,7 +42,7 @@ Use the AskUserQuestion tool to collect the following information:
 Automatically gather:
 ```bash
 # Get plugin version
-cat ~/.claude/plugins/installed_plugins.json 2>/dev/null | grep -A5 "compound-engineering" | head -10 || echo "Plugin info not found"
+cat ~/.claude/plugins/installed_plugins.json 2>/dev/null | grep -A5 "py-micro-superpowers" | head -10 || echo "Plugin info not found"
 
 # Get Claude Code version
 claude --version 2>/dev/null || echo "Claude CLI version unknown"
@@ -101,8 +101,8 @@ Use the GitHub CLI to create the issue:
 
 ```bash
 gh issue create \
-  --repo BaronVonSario/compound-engineering-feat-python \
-  --title "[compound-engineering-feat-python] Bug: [Brief description]" \
+  --repo weorbitant/compound-engineering-feat-python-plugin \
+  --title "[py-micro-superpowers] Bug: [Brief description]" \
   --body "[Formatted bug report from Step 3]" \
   --label "bug"
 ```
@@ -110,8 +110,8 @@ gh issue create \
 **Note:** If labels don't exist, create without labels:
 ```bash
 gh issue create \
-  --repo BaronVonSario/compound-engineering-feat-python \
-  --title "[compound-engineering-feat-python] Bug: [Brief description]" \
+  --repo weorbitant/compound-engineering-feat-python-plugin \
+  --title "[py-micro-superpowers] Bug: [Brief description]" \
   --body "[Formatted bug report]"
 ```
 
@@ -128,9 +128,9 @@ After the issue is created:
 ✅ Bug report submitted successfully!
 
 Issue: https://github.com/BaronVonSario/compound-engineering-feat-python/issues/[NUMBER]
-Title: [compound-engineering-feat-python] Bug: [description]
+Title: [py-micro-superpowers] Bug: [description]
 
-Thank you for helping improve the compound-engineering-feat-python plugin!
+Thank you for helping improve the py-micro-superpowers plugin!
 The maintainer will review your report and respond as soon as possible.
 ```
 

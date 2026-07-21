@@ -31,15 +31,15 @@
 ## Agent computation
 
 ### Base agents (always)
-`python-style-reviewer, python-typing-reviewer, pytest-reviewer, python-lint`
+`python-quality-reviewer, pytest-reviewer, python-lint`
 
 ### Framework additions
-- Django → `django-reviewer, django-migration-reviewer`
+- Django → `django-reviewer, migration-reviewer`
 - DRF → `django-drf-reviewer`
 - Django Ninja → (covered by `django-reviewer`)
 - Celery → `django-celery-reviewer`
 - FastAPI → `fastapi-reviewer`
-- SQLAlchemy → `fastapi-sqlalchemy-reviewer`
+- SQLAlchemy → (covered by `fastapi-reviewer`)
 
 ### Database additions
 - PostgreSQL → `postgresql-reviewer`
@@ -57,7 +57,7 @@
 - **Comprehensive:** thorough + `git-history-analyzer, data-integrity-guardian, agent-native-reviewer`
 
 ### Auto-configure defaults
-Always include: `python-style-reviewer, python-typing-reviewer, pytest-reviewer, python-lint, code-simplicity-reviewer, security-sentinel, performance-oracle`
+Always include: `python-quality-reviewer, pytest-reviewer, python-lint, code-simplicity-reviewer, security-sentinel, performance-oracle`
 
 Plus framework/database additions from tables above.
 
@@ -80,7 +80,7 @@ Apply to all 4 workflows uniformly. Always add `pytest-patterns` to `work` and `
 
 ## Output template
 
-`compound-engineering.local.md`:
+`py-micro-superpowers.local.md`:
 
 ```markdown
 ---

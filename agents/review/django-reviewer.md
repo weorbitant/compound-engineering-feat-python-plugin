@@ -185,3 +185,7 @@ Structure the review as:
    - Current pattern
    - Recommended pattern
 4. **Positive Observations**: Things done well that should be maintained
+
+## Verifying Version-Specific Behavior
+
+When a finding depends on the behavior of a specific library or framework version that is not certain, verify against current documentation via the context7 MCP tools (`resolve-library-id`, then `query-docs`) before flagging it. Never assert version-specific behavior from memory alone. If context7 is unavailable, state the uncertainty in the finding rather than presenting it as fact.

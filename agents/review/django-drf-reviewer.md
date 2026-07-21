@@ -197,3 +197,7 @@ Structure the review as:
    - Optimized pattern
 4. **API Design Improvements**: Convention, consistency, and usability suggestions
 5. **Positive Observations**: Well-designed patterns worth maintaining
+
+## Verifying Version-Specific Behavior
+
+When a finding depends on the behavior of a specific library or framework version that is not certain, verify against current documentation via the context7 MCP tools (`resolve-library-id`, then `query-docs`) before flagging it. Never assert version-specific behavior from memory alone. If context7 is unavailable, state the uncertainty in the finding rather than presenting it as fact.

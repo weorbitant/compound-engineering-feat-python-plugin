@@ -24,7 +24,7 @@ If the `superpowers:executing-plans` skill is not available, halt and instruct t
 
 ## Step 1: Load Project Workflow Skills
 
-Read `compound-engineering.local.md`. If `workflow_skills.work` is set, load each listed skill now (e.g., `django-patterns`, `pytest-patterns`).
+Read `py-micro-superpowers.local.md` (if it doesn't exist but a legacy `compound-engineering.local.md` does, read that — same schema). If `workflow_skills.work` is set, load each listed skill now (e.g., `django-patterns`, `pytest-patterns`).
 
 ## Step 2: Microservice Focus + Execution Order
 
@@ -57,7 +57,7 @@ Default: sequential execution in topological order.
 Options: [Confirm] [Force parallel] [Force sequential] [Adjust order]
 ```
 
-**If the user picks `[Force parallel]`:** within each wave, invoke `superpowers:dispatching-parallel-agents` to run that wave's services concurrently (do NOT invoke the deleted `orchestrating-swarms` skill). Waves still run sequentially with respect to each other — only within a wave is parallelized.
+**If the user picks `[Force parallel]`:** within each wave, invoke `superpowers:dispatching-parallel-agents` to run that wave's services concurrently. Waves still run sequentially with respect to each other — only within a wave is parallelized.
 
 **In single-service mode** (no `services:` frontmatter in the plan AND no `--services` argument), skip the wavefront/cycle/execution-order logic above — there's nothing to order. Step 3 passes no execution order parameter to superpowers; it runs as a single-service invocation.
 
@@ -94,7 +94,7 @@ Step 5 cannot start until all checks in this step pass. This is not advisory.
 
    Do not skip this cycle. Every fix can introduce new failures — always re-run from the top.
 
-2. **Optional Reviewer Agents** — for risky or large changes, read `review_agents` from `compound-engineering.local.md`. If present, spawn each in parallel via `Task`. Present findings; address critical ones before proceeding.
+2. **Optional Reviewer Agents** — for risky or large changes, read `review_agents` from `py-micro-superpowers.local.md`. If present, spawn each in parallel via `Task`. Present findings; address critical ones before proceeding.
 
 3. **Final Validation Checklist** — all must be true:
    - [ ] All plan tasks marked completed (checkboxes in plan file)

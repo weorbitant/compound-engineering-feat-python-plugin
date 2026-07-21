@@ -6,7 +6,7 @@ argument-hint: "[PR number, GitHub URL, branch name, or empty for current branch
 
 # Review (Python)
 
-This command is a thin wrapper around `superpowers:requesting-code-review`. It loads the Python reviewer agent roster from `compound-engineering.local.md`, supplies them to the superpowers orchestration, and adds Python-specific conditional agents for migrations.
+This command is a thin wrapper around `superpowers:requesting-code-review`. It loads the Python reviewer agent roster from `py-micro-superpowers.local.md`, supplies them to the superpowers orchestration, and adds Python-specific conditional agents for migrations.
 
 ## Review Target
 
@@ -46,10 +46,10 @@ If multiple services are changed, invoke the `microservice-focus` skill (passing
 ## Step 3: Load Reviewer Roster
 
 **Single-service or non-microservice mode:**
-Read `compound-engineering.local.md` in the project root. Use `review_agents` from the YAML frontmatter.
+Read `py-micro-superpowers.local.md` in the project root (if it doesn't exist but a legacy `compound-engineering.local.md` does, read that — same schema). Use `review_agents` from the YAML frontmatter.
 
 **Multi-service mode** (use the changed-service list computed in Step 2):
-For each changed service from Step 2's list, check `{service}/compound-engineering.local.md` first (allows per-service agent rosters — e.g., Django agents for one, FastAPI for another). Fall back to root-level `compound-engineering.local.md`.
+For each changed service from Step 2's list, check `{service}/py-micro-superpowers.local.md` first (allows per-service agent rosters — e.g., Django agents for one, FastAPI for another). Fall back to root-level `py-micro-superpowers.local.md`.
 
 If no settings file exists:
 - **Interactive mode** (no `--services` argument): invoke the `setup` skill to create one. Read the new file and continue.
@@ -57,7 +57,7 @@ If no settings file exists:
 
 ## Step 4: Load Project Workflow Skills
 
-From the same `compound-engineering.local.md`, parse `workflow_skills.review`. Load each listed skill now. They provide Python-specific context that helps interpret review findings.
+From the same `py-micro-superpowers.local.md`, parse `workflow_skills.review`. Load each listed skill now. They provide Python-specific context that helps interpret review findings.
 
 ## Step 5: Identify Conditional Agents
 
@@ -71,7 +71,7 @@ Some agents only run when the PR matches specific criteria:
 - Title/body mentioning: migration, backfill, data transformation, ID mapping
 
 If matched, add to the agent roster:
-- `data-migration-expert` — validates data migrations, swapped IDs, rollback safety
+- `migration-reviewer` — migration safety, data-migration validation, schema-drift detection
 - `deployment-verification-agent` — Go/No-Go checklist with SQL verification queries
 
 ## Step 6: Protected Artifacts
@@ -99,8 +99,6 @@ Invoke the `superpowers:requesting-code-review` skill. Pass:
 - Always-on agents to include alongside the roster:
   - `agent-native-reviewer` — verifies new features are agent-accessible
   - `code-simplicity-reviewer` — final pass for simplicity and minimalism
-
-Note: this command does **NOT** spawn `learnings-researcher` (deleted in v3.0.0) and does NOT read `docs/solutions/` (knowledge-compounding pattern dropped).
 
 ## Step 8: Synthesis & Todos
 

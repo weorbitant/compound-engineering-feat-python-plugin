@@ -1,15 +1,15 @@
 {
-  "name": "compound-engineering-feat-python",
+  "name": "py-micro-superpowers",
   "owner": {
     "name": "BaronVonSario",
     "email": "cesar.gon.fer@gmail.com"
   },
   "plugins": [
     {
-      "name": "compound-engineering-feat-python",
+      "name": "py-micro-superpowers",
       "source": "./",
-      "description": "Python-specialized development tools. 33 agents, 21 commands, 26 skills, 1 MCP server.",
-      "version": "2.5.2",
+      "description": "Superpowers for Python microservices. 25 agents, 17 commands, 21 skills, 1 MCP server.",
+      "version": "4.0.0",
       "author": {
         "name": "BaronVonSario"
       }

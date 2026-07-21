@@ -1,7 +1,7 @@
 {
-  "name": "compound-engineering-feat-python",
-  "version": "3.0.1",
-  "description": "Python-specialized development tools with microservice support, built on superpowers. 32 agents, 18 commands, 21 skills, 1 MCP server.",
+  "name": "py-micro-superpowers",
+  "version": "4.0.0",
+  "description": "Superpowers for Python microservices \u2014 Django, FastAPI, pytest, PostgreSQL review agents and skills built on the superpowers plugin. 25 agents, 17 commands, 21 skills, 1 MCP server.",
   "hooks": {
     "SessionStart": [
       {
@@ -23,16 +23,16 @@
   "repository": "https://github.com/weorbitant/compound-engineering-feat-python-plugin",
   "license": "MIT",
   "keywords": [
-    "ai-powered",
-    "compound-engineering",
+    "superpowers",
     "python",
+    "microservices",
     "django",
     "fastapi",
     "pytest",
     "pydantic",
     "postgresql",
     "code-review",
-    "knowledge-management"
+    "ai-powered"
   ],
   "mcpServers": {
     "context7": {

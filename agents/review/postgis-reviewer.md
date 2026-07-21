@@ -177,3 +177,7 @@ Structure the review as:
 ```
 
 Spatial bugs are insidious -- they often produce plausible but wrong results (e.g., swapped coordinates still plot on a map, just in the wrong location). For every issue, provide the specific code, explain the spatial consequence, and show the corrected version. Prioritize correctness over performance -- wrong results fast are worse than correct results slow.
+
+## Verifying Version-Specific Behavior
+
+When a finding depends on the behavior of a specific library or framework version that is not certain, verify against current documentation via the context7 MCP tools (`resolve-library-id`, then `query-docs`) before flagging it. Never assert version-specific behavior from memory alone. If context7 is unavailable, state the uncertainty in the finding rather than presenting it as fact.

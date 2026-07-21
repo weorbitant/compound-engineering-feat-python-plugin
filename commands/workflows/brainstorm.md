@@ -24,7 +24,7 @@ If the `superpowers:brainstorming` skill is not available, halt and instruct the
 
 ## Step 1: Load Project Workflow Skills
 
-Read `compound-engineering.local.md` in the project root. If found, parse the YAML frontmatter for `workflow_skills.brainstorm`. If the key contains a non-empty list of skill names, load each listed skill now. These provide project-specific Python/Django/domain context.
+Read `py-micro-superpowers.local.md` in the project root (if it doesn't exist but a legacy `compound-engineering.local.md` does, read that — same schema). If found, parse the YAML frontmatter for `workflow_skills.brainstorm`. If the key contains a non-empty list of skill names, load each listed skill now. These provide project-specific Python/Django/domain context.
 
 If no config exists or no `workflow_skills` key is present, proceed without additional skills.
 

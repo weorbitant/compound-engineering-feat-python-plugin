@@ -24,7 +24,7 @@ if [ ${#missing[@]} -eq 0 ]; then
 fi
 
 # Build warning message
-warning="[compound-engineering] Dependencies not found:"
+warning="[py-micro-superpowers] Dependencies not found:"
 
 if [[ " ${missing[*]} " =~ " agent-browser " ]]; then
   warning="$warning

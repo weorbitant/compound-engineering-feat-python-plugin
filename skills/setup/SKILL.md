@@ -1,19 +1,19 @@
 ---
 name: setup
-description: Configure which review agents and workflow skills run for a project by auto-detecting the Python stack and writing compound-engineering.local.md. Use when setting up the plugin in a new project or reconfiguring review agents and workflow skills.
+description: Configure which review agents and workflow skills run for a project by auto-detecting the Python stack and writing py-micro-superpowers.local.md. Use when setting up the plugin in a new project or reconfiguring review agents and workflow skills.
 model: sonnet
 disable-model-invocation: true
 ---
 
 # Compound Engineering Setup
 
-Interactive setup for `compound-engineering.local.md` — configures which agents run during `/workflows:review` and `/workflows:work`.
+Interactive setup for `py-micro-superpowers.local.md` — configures which agents run during `/workflows:review` and `/workflows:work`.
 
 Detection rules, agent computation, workflow skill mapping, and output template: [references/stack-detection.md](./references/stack-detection.md).
 
 ## Step 1: Check Existing Config
 
-Read `compound-engineering.local.md` in project root. If it exists, show current settings and AskUserQuestion:
+Read `py-micro-superpowers.local.md` in project root (if only a legacy `compound-engineering.local.md` exists, read that instead and migrate it: write the new filename on save and delete the legacy file after confirming with the user). If it exists, show current settings and AskUserQuestion:
 
 ```
 question: "Settings file already exists. What would you like to do?"
@@ -77,12 +77,12 @@ If **Customize per workflow**, for each of `brainstorm`, `plan`, `work`, `review
 
 Compute `review_agents` and `plan_review_agents` from selections (algorithm in [references/stack-detection.md](./references/stack-detection.md)).
 
-Write `compound-engineering.local.md` using the template in references. Omit `workflow_skills` block if user chose Skip in 3e.
+Write `py-micro-superpowers.local.md` using the template in references. Omit `workflow_skills` block if user chose Skip in 3e.
 
 ## Step 5: Confirm
 
 ```
-Saved to compound-engineering.local.md
+Saved to py-micro-superpowers.local.md
 
 Stack:        Python
 Frameworks:   {framework list}
