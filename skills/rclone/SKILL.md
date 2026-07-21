@@ -8,7 +8,9 @@ model: haiku
 
 ## Setup Check (Always Run First)
 
-Before any rclone operation, verify installation and configuration:
+Before any rclone operation, verify installation and configuration. Run
+[check_setup.sh](./scripts/check_setup.sh) to check installation, configured remotes, and
+connectivity in one step, or run the checks manually:
 
 ```bash
 # Check if rclone is installed

@@ -36,14 +36,16 @@ Before going online, check if curated knowledge already exists in skills:
 
 2. **Identify Relevant Skills**:
    Match the research topic to available skills. Common mappings:
-   - Django → `django-patterns`, `django-drf`
+   - Django → `django-patterns`, `django-drf`, `django-async`
    - FastAPI → `fastapi-patterns`, `fastapi-sqlalchemy`
-   - Frontend/Design → `frontend-design`, `swiss-design`
-   - TypeScript/React → `react-best-practices`
+   - PostgreSQL/PostGIS → `postgresql-patterns`, `postgis-patterns`
+   - Testing → `pytest-patterns`
+   - Typing/Pydantic → `python-typing`
+   - Frontend/Design → `frontend-design`
    - AI/Agents → `agent-native-architecture`
-   - Documentation → `every-style-editor`
    - File operations → `rclone`
    - Image generation → `gemini-imagegen`
+   - Project-local skills in `.claude/skills/` may cover additional domains — check their descriptions
 
 3. **Extract Patterns from Skills**:
    - Read the full content of relevant SKILL.md files

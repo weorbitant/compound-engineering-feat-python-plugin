@@ -115,14 +115,14 @@ SELECT status, COUNT(*) FROM records GROUP BY status;
 | Missing data count | > 0 for 5 min | /dashboard/data |
 | User reports | Any report | Support queue |
 
-**Sample console verification (run 1 hour after deploy):**
-```ruby
+**Sample shell verification (run 1 hour after deploy, e.g. `python manage.py shell`):**
+```python
 # Quick sanity check
-Record.where(new_column: nil, old_column: [present values]).count
+Record.objects.filter(new_column__isnull=True, old_column__isnull=False).count()
 # Expected: 0
 
 # Spot check random records
-Record.order("RANDOM()").limit(10).pluck(:old_column, :new_column)
+Record.objects.order_by("?")[:10].values_list("old_column", "new_column")
 # Verify mapping is correct
 ```
 
@@ -171,4 +171,4 @@ Invoke this agent when:
 - Data Migration Expert flags critical findings
 - Any change that could silently corrupt/lose data
 
-Be thorough. Be specific. Produce executable checklists, not vague recommendations.
+Produce executable checklists with concrete queries and commands, not vague recommendations.

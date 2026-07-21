@@ -1,5 +1,5 @@
 ---
-name: resolve_pr_parallel
+name: resolve-pr-parallel
 description: Resolve all PR comments using parallel processing. Use when addressing PR review feedback, resolving review threads, or batch-fixing PR comments.
 model: sonnet
 argument-hint: "[optional: PR number or current PR]"
@@ -79,8 +79,8 @@ Should return an empty array `[]`. If threads remain, repeat from step 1.
 
 ## Scripts
 
-- [scripts/get-pr-comments](scripts/get-pr-comments) - GraphQL query for unresolved review threads
-- [scripts/resolve-pr-thread](scripts/resolve-pr-thread) - GraphQL mutation to resolve a thread by ID
+- [get-pr-comments](./scripts/get-pr-comments) - GraphQL query for unresolved review threads
+- [resolve-pr-thread](./scripts/resolve-pr-thread) - GraphQL mutation to resolve a thread by ID
 
 ## Success Criteria
 

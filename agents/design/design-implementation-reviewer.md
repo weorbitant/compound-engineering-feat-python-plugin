@@ -28,7 +28,7 @@ Your primary responsibility is to conduct thorough visual comparisons between im
 ## Your Workflow
 
 1. **Capture Implementation State**
-   - Use agent-browser CLI to capture screenshots of the implemented UI
+   - Use the agent-browser CLI (see the `agent-browser` skill) to capture screenshots of the implemented UI
    - Test different viewport sizes if the design includes responsive breakpoints
    - Capture interactive states (hover, focus, active) when relevant
    - Document the URL and selectors of the components being reviewed

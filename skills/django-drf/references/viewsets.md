@@ -246,7 +246,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     filter_backends = [SearchFilter]
     search_fields = [
-        "title",          # Exact field match
+        "title",          # Partial match (icontains)
         "=author__username",  # Exact match
         "^title",         # Starts-with
         "@body",          # Full-text search (PostgreSQL)

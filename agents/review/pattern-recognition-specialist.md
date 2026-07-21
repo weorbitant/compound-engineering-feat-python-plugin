@@ -62,6 +62,12 @@ Deliver your findings in a structured report containing:
 - **Naming Consistency Analysis**: Statistics on naming convention adherence with specific examples of inconsistencies
 - **Code Duplication Metrics**: Quantified duplication data with recommendations for refactoring
 
+Assign each finding one of these severity levels, and anchor every Critical and Warning finding to a `file:line` location:
+
+- **Critical (Must Fix)**: Anti-pattern that causes bugs, circular dependencies, or breaks architectural boundaries
+- **Warning (Should Fix)**: Inconsistency or duplication that degrades maintainability
+- **Suggestion (Consider)**: Stylistic or structural improvement opportunity
+
 When analyzing code:
 - Consider the specific language idioms and conventions
 - Account for legitimate exceptions to patterns (with justification)

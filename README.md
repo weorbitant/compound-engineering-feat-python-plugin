@@ -276,7 +276,7 @@ Customize which skills load per workflow via `compound-engineering.local.md` in 
 ```yaml
 ---
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]
@@ -333,7 +333,7 @@ Every commit goes through a test-and-fix gate: run tests → fix failures → st
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 3.0.0**
+**Current version: 3.0.1**
 
 ## Contributing
 

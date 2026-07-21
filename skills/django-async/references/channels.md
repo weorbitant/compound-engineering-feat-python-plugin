@@ -71,10 +71,13 @@ uvicorn proj.asgi:application --host 0.0.0.0 --port 8000 --reload
 
 ### WebsocketConsumer (synchronous)
 
-Runs in a thread pool. Use for simple cases or when calling synchronous Django ORM code:
+Runs in a thread pool. Use for simple cases or when calling synchronous Django ORM code.
+Channel layer methods (`group_add`, `group_send`, `group_discard`) are async — in sync
+consumers, wrap them with `async_to_sync`:
 
 ```python
 import json
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 class ChatConsumer(WebsocketConsumer):
@@ -83,7 +86,7 @@ class ChatConsumer(WebsocketConsumer):
         self.room_group = f"chat_{self.room_name}"
 
         # join room group
-        self.channel_layer.group_add(self.room_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.room_group, self.channel_name)
         self.accept()
 
         # send recent messages on connect
@@ -99,7 +102,7 @@ class ChatConsumer(WebsocketConsumer):
         }))
 
     def disconnect(self, close_code):
-        self.channel_layer.group_discard(self.room_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)(self.room_group, self.channel_name)
 
     def receive(self, text_data):
         data = json.loads(text_data)
@@ -114,7 +117,7 @@ class ChatConsumer(WebsocketConsumer):
         )
 
         # broadcast to room group
-        self.channel_layer.group_send(
+        async_to_sync(self.channel_layer.group_send)(
             self.room_group,
             {
                 "type": "chat.message",
@@ -189,28 +192,29 @@ class AsyncChatConsumer(AsyncWebsocketConsumer):
 Handles JSON serialization/deserialization automatically:
 
 ```python
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 
 class DashboardConsumer(JsonWebsocketConsumer):
     def connect(self):
         self.user_group = f"dashboard_{self.scope['user'].id}"
-        self.channel_layer.group_add(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.user_group, self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):
-        self.channel_layer.group_discard(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)(self.user_group, self.channel_name)
 
     def receive_json(self, content):
         """Called with parsed JSON content instead of raw text."""
         action = content.get("action")
         if action == "subscribe":
             metric = content["metric"]
-            self.channel_layer.group_add(
+            async_to_sync(self.channel_layer.group_add)(
                 f"metric_{metric}", self.channel_name,
             )
         elif action == "unsubscribe":
             metric = content["metric"]
-            self.channel_layer.group_discard(
+            async_to_sync(self.channel_layer.group_discard)(
                 f"metric_{metric}", self.channel_name,
             )
 
@@ -424,12 +428,12 @@ class UserNotificationConsumer(JsonWebsocketConsumer):
             return
 
         self.user_group = f"user_{user.id}"
-        self.channel_layer.group_add(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.user_group, self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):
         if hasattr(self, "user_group"):
-            self.channel_layer.group_discard(
+            async_to_sync(self.channel_layer.group_discard)(
                 self.user_group, self.channel_name,
             )
 ```
@@ -458,12 +462,12 @@ class ProjectConsumer(JsonWebsocketConsumer):
         self.accept()
 
     def join_group(self, group_name):
-        self.channel_layer.group_add(group_name, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(group_name, self.channel_name)
         self.groups_joined.append(group_name)
 
     def disconnect(self, close_code):
         for group_name in self.groups_joined:
-            self.channel_layer.group_discard(group_name, self.channel_name)
+            async_to_sync(self.channel_layer.group_discard)(group_name, self.channel_name)
 ```
 
 ### Presence Tracking
@@ -471,6 +475,7 @@ class ProjectConsumer(JsonWebsocketConsumer):
 Track which users are currently connected:
 
 ```python
+from asgiref.sync import async_to_sync
 from django.core.cache import cache
 
 class PresenceConsumer(JsonWebsocketConsumer):
@@ -479,7 +484,7 @@ class PresenceConsumer(JsonWebsocketConsumer):
         self.room = self.scope["url_route"]["kwargs"]["room"]
         self.room_group = f"room_{self.room}"
 
-        self.channel_layer.group_add(self.room_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.room_group, self.channel_name)
         self.accept()
 
         # track presence in cache
@@ -489,7 +494,7 @@ class PresenceConsumer(JsonWebsocketConsumer):
         cache.set(presence_key, members, timeout=None)
 
         # broadcast updated member list
-        self.channel_layer.group_send(
+        async_to_sync(self.channel_layer.group_send)(
             self.room_group,
             {"type": "presence.update", "members": list(members)},
         )
@@ -501,8 +506,8 @@ class PresenceConsumer(JsonWebsocketConsumer):
         members.discard(user.username)
         cache.set(presence_key, members, timeout=None)
 
-        self.channel_layer.group_discard(self.room_group, self.channel_name)
-        self.channel_layer.group_send(
+        async_to_sync(self.channel_layer.group_discard)(self.room_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_send)(
             self.room_group,
             {"type": "presence.update", "members": list(members)},
         )
@@ -582,11 +587,9 @@ def create_test_user():
 @pytest.fixture
 def channel_layer():
     """Use in-memory channel layer for tests."""
-    from channels.layers import get_channel_layer
-    from channels.testing import InMemoryChannelLayer
+    from channels.layers import InMemoryChannelLayer
 
-    layer = InMemoryChannelLayer()
-    return layer
+    return InMemoryChannelLayer()
 ```
 
 ### Settings for Tests
@@ -644,6 +647,7 @@ def generate_export(self, export_id: int, user_id: int) -> dict:
 
 ```python
 # consumers.py
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 
 class ExportConsumer(JsonWebsocketConsumer):
@@ -653,12 +657,12 @@ class ExportConsumer(JsonWebsocketConsumer):
             self.close()
             return
         self.user_group = f"user_{user.id}"
-        self.channel_layer.group_add(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.user_group, self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):
         if hasattr(self, "user_group"):
-            self.channel_layer.group_discard(
+            async_to_sync(self.channel_layer.group_discard)(
                 self.user_group, self.channel_name,
             )
 

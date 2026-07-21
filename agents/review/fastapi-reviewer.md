@@ -49,7 +49,7 @@ Systematically evaluate the codebase against every item below. For each item, as
 - Check that dependencies have proper lifecycle management (generators with `yield` for cleanup)
 - Verify no global mutable state is used where a dependency should be
 - Ensure nested dependencies are composed correctly and do not cause redundant instantiation
-- Flag any dependency that performs heavy work without caching via `use_cache=True`
+- Flag any dependency that sets `use_cache=False` without justification (per-request dependency caching is on by default; disabling it re-runs heavy work on every `Depends()` reference)
 
 ### 3. Async Correctness
 
@@ -80,7 +80,7 @@ Systematically evaluate the codebase against every item below. For each item, as
 - Verify `CORSMiddleware` is configured with explicit `allow_origins` (not `["*"]` in production)
 - Check that custom middleware uses `BaseHTTPMiddleware` or raw ASGI correctly
 - Ensure middleware ordering is intentional (auth before business logic, logging outermost)
-- Confirm `TrustedHostMiddleware` is set when behind a reverse proxy
+- Confirm `TrustedHostMiddleware` restricts `Host` headers in production (and proxy headers are only trusted via explicit `--forwarded-allow-ips` / `proxy_headers` configuration)
 - Flag middleware that performs blocking I/O
 
 ### 7. OpenAPI and Documentation

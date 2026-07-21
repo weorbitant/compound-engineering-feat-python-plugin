@@ -428,6 +428,10 @@ async def authenticate_user(
     return user
 ```
 
+Note: passlib is unmaintained and breaks with `bcrypt>=4.1`. Pin `bcrypt<4.1` when using
+passlib, or hash with the `bcrypt` library directly (or `pwdlib`, used by current FastAPI
+docs) in new projects.
+
 ### Secure Token Generation
 
 ```python
@@ -479,8 +483,8 @@ from fastapi import Cookie, Response
 
 @router.post("/auth/login")
 async def login(
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    response: Response = None,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     user = await authenticate_user(db, form_data.username, form_data.password)

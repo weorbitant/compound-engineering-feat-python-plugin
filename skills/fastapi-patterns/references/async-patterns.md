@@ -419,7 +419,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 ```
 
-### Redis with aioredis
+### Redis with redis-py (redis.asyncio)
 
 ```python
 import redis.asyncio as aioredis
@@ -454,7 +454,7 @@ async def get_http_client() -> httpx.AsyncClient:
 
 ## Testing Async Code
 
-### pytest-asyncio with httpx.AsyncClient
+### anyio with httpx.AsyncClient
 
 ```python
 import pytest
@@ -483,8 +483,6 @@ async def test_list_items(client: AsyncClient):
 ### Overriding Dependencies in Tests
 
 ```python
-from fastapi.testclient import TestClient
-
 from dependencies import get_db
 from main import app
 

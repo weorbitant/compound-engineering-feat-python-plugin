@@ -197,7 +197,7 @@ Audit `commands/heal-skill.md` for any reference to deleted surfaces.
 ```yaml
 # v2.5.2
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]
@@ -205,7 +205,7 @@ workflow_skills:
 
 # v3.0.0
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]

@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Configure which review agents run for your project. Auto-detects Python stack and writes compound-engineering.local.md.
+description: Configure which review agents and workflow skills run for a project by auto-detecting the Python stack and writing compound-engineering.local.md. Use when setting up the plugin in a new project or reconfiguring review agents and workflow skills.
 model: sonnet
 disable-model-invocation: true
 ---

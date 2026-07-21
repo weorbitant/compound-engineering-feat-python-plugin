@@ -1197,7 +1197,7 @@ Actually, check whether the `## Documentation` section has other lines. If it ha
 Find this block:
 ```yaml
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]
@@ -1207,7 +1207,7 @@ workflow_skills:
 Replace with:
 ```yaml
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]

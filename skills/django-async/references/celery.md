@@ -346,7 +346,7 @@ celery -A proj worker -Q default,emails --concurrency=8
 send_email.apply_async(
     args=["user@example.com", "Welcome"],
     queue="high_priority",
-    priority=0,  # 0 = highest, 9 = lowest (for RabbitMQ)
+    priority=0,  # Redis transport: 0 = highest; RabbitMQ: higher number = higher priority
 )
 ```
 

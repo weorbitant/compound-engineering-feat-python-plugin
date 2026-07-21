@@ -66,4 +66,10 @@ for part in response.parts:
 
 ## Scripts
 
-See `scripts/` for helper CLI utilities. Install with `pip install -r requirements.txt`.
+Helper CLI utilities (install dependencies with `pip install -r` [requirements.txt](./requirements.txt)):
+
+- [generate_image.py](./scripts/generate_image.py) — text-to-image generation
+- [edit_image.py](./scripts/edit_image.py) — edit an existing image with a text instruction
+- [compose_images.py](./scripts/compose_images.py) — combine multiple reference images
+- [multi_turn_chat.py](./scripts/multi_turn_chat.py) — interactive multi-turn refinement
+- [gemini_images.py](./scripts/gemini_images.py) — importable library wrapping the above

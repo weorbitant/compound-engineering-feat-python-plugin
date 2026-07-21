@@ -36,13 +36,14 @@ You will systematically execute these security scans:
 1. **Input Validation Analysis**
    - Search for all input points: `grep -r "req\.\(body\|params\|query\)" --include="*.js"`
    - For Django projects: `grep -r "request\.(GET|POST|data)" --include="*.py"`
+   - For FastAPI projects: flag raw `Request` body access (`await request.json()`, `request.query_params`) that bypasses Pydantic model validation
    - Verify each input is properly validated and sanitized
    - Check for type validation, length limits, and format constraints
 
 2. **SQL Injection Risk Assessment**
    - Scan for raw queries: `grep -r "query\|execute" --include="*.js" | grep -v "?"`
-   - For Django: Check for raw SQL in models and views
-   - Ensure all queries use parameterization or prepared statements
+   - For Python: `grep -rn "\.raw(\|cursor.execute\|text(" --include="*.py"` -- flag f-strings, `%` formatting, or `+` concatenation inside `execute()`, `.raw()`, or SQLAlchemy `text()`
+   - Ensure all queries use parameterization or prepared statements (bound parameters, not string interpolation)
    - Flag any string concatenation in SQL contexts
 
 3. **XSS Vulnerability Detection**
@@ -58,13 +59,13 @@ You will systematically execute these security scans:
    - Look for privilege escalation possibilities
 
 5. **Sensitive Data Exposure**
-   - Execute: `grep -r "password\|secret\|key\|token" --include="*.js"`
-   - Scan for hardcoded credentials, API keys, or secrets
+   - Execute: `grep -ri "password\|secret\|api_key\|token" --include="*.py" --include="*.js" --include="*.env*" --include="*.yml" --include="*.yaml"`
+   - Scan for hardcoded credentials, API keys, or secrets (including committed `.env` files and settings modules)
    - Check for sensitive data in logs or error messages
    - Verify proper encryption for sensitive data at rest and in transit
 
 6. **OWASP Top 10 Compliance**
-   - Systematically check against each OWASP Top 10 vulnerability
+   - Systematically check against each OWASP Top 10 (2021) category, including Broken Access Control (A01), Injection (A03), Insecure Design (A04), and SSRF (A10)
    - Document compliance status for each category
    - Provide specific remediation steps for any gaps
 
@@ -91,7 +92,7 @@ Your security reports will include:
 2. **Detailed Findings**: For each vulnerability:
    - Description of the issue
    - Potential impact and exploitability
-   - Specific code location
+   - Specific code location (`file:line`)
    - Proof of concept (if applicable)
    - Remediation recommendations
 3. **Risk Matrix**: Categorize findings by severity (Critical, High, Medium, Low)

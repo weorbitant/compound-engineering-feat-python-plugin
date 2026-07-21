@@ -47,7 +47,7 @@ class Order(models.Model):
                 name="unique_customer_external_id",
             ),
             models.CheckConstraint(
-                check=models.Q(total__gte=0),
+                condition=models.Q(total__gte=0),  # "check=" deprecated since Django 5.1
                 name="order_total_non_negative",
             ),
         ]
@@ -390,11 +390,11 @@ class Meta:
 class Meta:
     constraints = [
         models.CheckConstraint(
-            check=models.Q(price__gte=0),
+            condition=models.Q(price__gte=0),
             name="price_non_negative",
         ),
         models.CheckConstraint(
-            check=models.Q(start_date__lt=models.F("end_date")),
+            condition=models.Q(start_date__lt=models.F("end_date")),
             name="start_before_end",
         ),
     ]
@@ -449,7 +449,8 @@ When adding a required field to an existing table:
 ### Large Table Migrations
 
 - Avoid adding indexes with `db_index=True` on large tables in a single migration;
-  use `AddIndex` with `CREATE INDEX CONCURRENTLY` via `SeparateDatabaseAndState`
+  use `AddIndexConcurrently` from `django.contrib.postgres.operations` in a migration
+  with `atomic = False` (PostgreSQL)
 - Split schema changes and data changes into separate migrations
 - Never run `RunPython` that iterates millions of rows without batching:
 

@@ -551,7 +551,7 @@ def process_list(items: list[Any]) -> None:
 Preserve parameter types through decorators.
 
 ```python
-from typing import ParamSpec, Concatenate
+from typing import Concatenate, ParamSpec, TypeVar
 from collections.abc import Callable
 from functools import wraps
 

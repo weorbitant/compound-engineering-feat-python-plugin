@@ -63,7 +63,7 @@ Options: [Confirm] [Force parallel] [Force sequential] [Adjust order]
 
 ## Step 3: Delegate plan execution to superpowers
 
-Invoke the `superpowers:executing-plans` skill (or `superpowers:subagent-driven-development` if the plan header recommends it). Pass:
+Choose the execution skill per current superpowers guidance: **prefer `superpowers:subagent-driven-development` when subagents are available** (they are in Claude Code); use `superpowers:executing-plans` only when subagents are unavailable or the plan header explicitly requests it. SDD keeps its working artifacts in `.superpowers/sdd/` at the repo root — leave that directory alone; it is how an interrupted run resumes. Pass:
 
 - The plan path from `<input_document>`.
 - The `<focus_context>` block.

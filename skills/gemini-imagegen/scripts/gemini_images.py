@@ -7,8 +7,8 @@ Usage:
     from gemini_images import GeminiImageGenerator
     
     gen = GeminiImageGenerator()
-    gen.generate("A sunset over mountains", "sunset.png")
-    gen.edit("input.png", "Add clouds", "output.png")
+    gen.generate("A sunset over mountains", "sunset.jpg")
+    gen.edit("input.png", "Add clouds", "output.jpg")
 
 Environment:
     GEMINI_API_KEY - Required API key
@@ -34,7 +34,7 @@ class GeminiImageGenerator:
     FLASH = "gemini-2.5-flash-image"
     PRO = "gemini-3-pro-image-preview"
     
-    def __init__(self, api_key: str | None = None, model: Model = FLASH):
+    def __init__(self, api_key: str | None = None, model: Model = PRO):
         """Initialize the generator.
         
         Args:

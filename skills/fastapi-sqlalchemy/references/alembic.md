@@ -178,15 +178,15 @@ Revises: previous_revision
 Create Date: 2025-01-15 10:30:00.000000
 """
 
-from typing import Sequence, Union
+from collections.abc import Sequence
 
 from alembic import op
 import sqlalchemy as sa
 
 revision: str = "abc123def456"
 down_revision: str | None = "previous_revision"
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
@@ -340,7 +340,6 @@ def upgrade() -> None:
 
     connection = op.get_bind()
     batch_size = 1000
-    offset = 0
 
     while True:
         batch = connection.execute(
@@ -358,8 +357,6 @@ def upgrade() -> None:
                 .where(users.c.id == row.id)
                 .values(name_lower=row.name.lower())
             )
-
-        offset += batch_size
 ```
 
 ## Branching and Merging
@@ -547,35 +544,23 @@ def upgrade() -> None:
 
 ### Adding an Index Concurrently (PostgreSQL)
 
-Large tables can lock for minutes during index creation. Use `CONCURRENTLY`:
+Large tables can lock for minutes during index creation. Use `CONCURRENTLY`, wrapped in
+`autocommit_block()` since `CREATE INDEX CONCURRENTLY` cannot run inside a transaction:
 
 ```python
 from alembic import op
 
+
 def upgrade() -> None:
-    op.execute(
-        "CREATE INDEX CONCURRENTLY ix_orders_created_at "
-        "ON orders (created_at)"
-    )
+    with op.get_context().autocommit_block():
+        op.execute(
+            "CREATE INDEX CONCURRENTLY ix_orders_created_at "
+            "ON orders (created_at)"
+        )
 
 
 def downgrade() -> None:
     op.drop_index("ix_orders_created_at", table_name="orders")
-```
-
-Set `autocommit` in the migration since `CREATE INDEX CONCURRENTLY` cannot run
-inside a transaction:
-
-```python
-from alembic import op
-
-
-def upgrade() -> None:
-    op.execute("COMMIT")
-    op.execute(
-        "CREATE INDEX CONCURRENTLY ix_orders_created_at "
-        "ON orders (created_at)"
-    )
 ```
 
 ### Removing a Column

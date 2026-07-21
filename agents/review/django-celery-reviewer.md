@@ -180,7 +180,7 @@ with transaction.atomic():
 Review periodic task configuration for correctness and operational safety.
 
 - Set `expires` on periodic tasks to prevent stale tasks from executing after delays
-- Use locking (e.g., `django-celery-beat` with `one_off` or `redis-lock`) to prevent overlapping runs
+- Use a distributed lock acquired inside the task (e.g., Redis lock or cache-based lock) to prevent overlapping runs -- Celery Beat and `django-celery-beat` do not prevent overlap on their own
 - Estimate task runtime and ensure schedule intervals are wider than worst-case execution time
 - Prefer crontab schedules over intervals for time-of-day tasks
 - Document the purpose and expected runtime of each periodic task
@@ -213,7 +213,7 @@ Check that tasks are observable in production.
 - Log task start, completion, and failure with task ID and relevant context
 - Use structured logging with `task_id`, `args`, and timing information
 - Set up Flower or a monitoring dashboard for task queue visibility
-- Configure `task_reject_on_worker_lost = True` for tasks that must not silently disappear
+- For tasks that must not silently disappear on worker crash, set `acks_late = True` together with `task_reject_on_worker_lost = True` (the latter has no effect without late acks) -- this requires the task to be idempotent, since it will be redelivered
 - Send alerts on repeated task failures or queue backlog growth
 
 - :red_circle: FAIL: Tasks with no logging, failures silently swallowed, no monitoring

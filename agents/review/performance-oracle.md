@@ -97,13 +97,13 @@ Structure your analysis as:
 1. **Performance Summary**: High-level assessment of current performance characteristics
 
 2. **Critical Issues**: Immediate performance problems that need addressing
-   - Issue description
+   - Issue description with location (`file:line`)
    - Current impact
    - Projected impact at scale
    - Recommended solution
 
 3. **Optimization Opportunities**: Improvements that would enhance performance
-   - Current implementation analysis
+   - Current implementation analysis with location (`file:line`)
    - Suggested optimization
    - Expected performance gain
    - Implementation complexity

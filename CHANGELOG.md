@@ -5,6 +5,59 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.1] - 2026-07-21
+
+### Changed
+- Synced workflow wrappers with superpowers v6.1.1 (plugin was designed against
+  v5.1.0): `/workflows:work` now prefers `superpowers:subagent-driven-development`
+  when subagents are available (upstream's current guidance) and documents the
+  `.superpowers/sdd/` resume workspace; `/workflows:plan` multi-service splitting
+  now carries the new `## Global Constraints` header and per-task `**Interfaces:**`
+  blocks (upstream plan format) verbatim into every per-service plan.
+- Full review-and-improve pass over all 21 skills and 32 agents (six parallel
+  audit agents; targeted fixes only).
+
+### Fixed
+- Removed all remaining references to the original template's company/author:
+  `holafly-domain` example skill (now `my-company-domain`), holafly template
+  attributions in CHANGELOG history, and the author's personal R2 bucket
+  (`r2:kieran-claude`) in `/feature-video`.
+- Ported leftover Ruby/Rails idioms to Python across agents: Bundler commands →
+  pip/poetry/uv, rake tasks → management commands, ERB templates → Django/Jinja2,
+  Rails console verification → `manage.py shell` (framework-docs-researcher,
+  repo-research-analyst, data-migration-expert, deployment-verification-agent,
+  figma-design-sync).
+- Corrected factually wrong technical guidance: Celery `task_reject_on_worker_lost`
+  semantics and beat `one_off` overlap claims; inverted FastAPI `use_cache` advice;
+  `TrustedHostMiddleware` scope; PG11+ `ADD COLUMN DEFAULT` lock claims;
+  `from __future__ import annotations` "required for <3.11" claim; deprecated
+  `typing.Callable`-family imports; schema-drift-detector's non-working
+  `git checkout main --` removal commands; self-contradicting PostGIS
+  `ST_DWithin` example; django-ninja auth/pagination/test-client APIs;
+  `CheckConstraint(check=)` → `condition=`; unwrapped async channel-layer calls
+  in sync Channels consumers; invalid `WITH ... MATERIALIZED` SQL syntax;
+  broken Celery retry-test pattern; pydantic-settings `SettingsConfigDict`
+  imports; deprecated `datetime.utcnow`; `aioredis` → `redis.asyncio` naming and
+  deprecated `close()`; GeoAlchemy2 examples modernized to SQLAlchemy 2.0 with
+  correct imports; retired Claude model IDs updated to current aliases.
+- Skill-spec compliance: `resolve-pr-parallel` frontmatter name matched its
+  directory; `setup` and `document-review` descriptions gained the "when to use"
+  half; gemini-imagegen scripts linked from SKILL.md and their defaults aligned
+  with the documented model/output-format mandates; rclone's orphan
+  `check_setup.sh` linked; file-todos broken glob check and `{file}` → `{id}`
+  placeholders fixed; vendored the Apache-2.0 `LICENSE.txt` that
+  frontend-design's frontmatter already claimed.
+- Removed references to skills that don't exist in this plugin (`swiss-design`,
+  `react-best-practices`, `every-style-editor`) and fixed stale `docs/plans/`
+  paths to `docs/superpowers/plans/`.
+- Reviewer agents without a findings format (architecture-strategist,
+  pattern-recognition-specialist, data-integrity-guardian) now specify
+  severity levels and `file:line` anchors; security-sentinel scan patterns are
+  Python-aware; python-lint detects poetry/uv runners; pr-comment-resolver
+  documents how to fetch PR comments via `gh`.
+- `scripts/check-dependencies.sh` no longer hardcodes the plugin version in its
+  warning text.
+
 ## [3.0.0] - 2026-05-25
 
 ### Changed
@@ -230,7 +283,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`focus` skill** — Set working context to specific microservices/libraries in a monorepo. Discovers services by `pyproject.toml` presence, resolves short names, loads context (README, deps, structure), detects internal dependencies. Composable with holafly-platform conventions (`.claude/prompt.md`).
+- **`focus` skill** — Set working context to specific microservices/libraries in a monorepo. Discovers services by `pyproject.toml` presence, resolves short names, loads context (README, deps, structure), detects internal dependencies. Composable with platform-template conventions (`.claude/prompt.md`).
 - **Microservice mode** for all workflow commands — Opt-in multi-service support activated by `/focus` + `services:` YAML in plan frontmatter. Without these, all workflows behave identically to single-service mode.
 
 ### Changed
@@ -276,7 +329,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **`commit` skill** — Analyze uncommitted changes, group into logical units, and create conventional commits with gitmoji emojis. Supports amend detection, pre-commit hook handling, multi-group staging, and interactive confirmation. Adapted from holafly/claude-service-template.
+- **`commit` skill** — Analyze uncommitted changes, group into logical units, and create conventional commits with gitmoji emojis. Supports amend detection, pre-commit hook handling, multi-group staging, and interactive confirmation. Adapted from an internal service template.
 
 ### Removed
 

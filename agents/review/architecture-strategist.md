@@ -57,6 +57,14 @@ Provide your analysis in a structured format that includes:
 4. **Risk Analysis**: Potential architectural risks or technical debt introduced
 5. **Recommendations**: Specific suggestions for architectural improvements or corrections
 
+Assign each finding a severity level and anchor it to a location:
+
+- **Critical (Must Fix)**: Violates architectural boundaries, introduces circular dependencies, or breaks API contracts
+- **Warning (Should Fix)**: Degrades cohesion, leaks abstractions, or deviates from established patterns
+- **Suggestion (Consider)**: Improvement opportunity that does not block the change
+
+Every Critical and Warning finding must cite the specific `file:line` (or file and symbol) where the issue occurs.
+
 Be proactive in identifying architectural smells such as:
 - Inappropriate intimacy between components
 - Leaky abstractions

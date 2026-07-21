@@ -67,14 +67,8 @@ Recommended viewport sizes for reference:
 
 1. First, get element references with `agent-browser snapshot -i`
 2. Find the ref for your target element (e.g., @e1, @e2)
-3. Use `agent-browser scrollintoview @e1` to focus on specific elements
-4. Take screenshot: `agent-browser screenshot output.png`
-
-### Viewport Screenshots
-
-For focused screenshots:
-1. Use `agent-browser scrollintoview @e1` to scroll element into view
-2. Take viewport screenshot: `agent-browser screenshot output.png`
+3. Use `agent-browser scrollintoview @e1` to scroll the target into view
+4. Take a viewport screenshot: `agent-browser screenshot output.png`
 
 ### Example Workflow
 
@@ -187,7 +181,7 @@ When invoked, you should:
 
 ### Step 0: Check for Design Skills in Context
 
-**Design skills like swiss-design, frontend-design, etc. are automatically loaded when invoked by the user.** Check your context for active skill instructions.
+**The `frontend-design` skill is loaded for this agent; project-local design skills from `.claude/skills/` may also be in context.** Check your context for active skill instructions.
 
 If the user mentions a design style (Swiss, minimalist, Stripe-like, etc.), look for:
 - Loaded skill instructions in your system context

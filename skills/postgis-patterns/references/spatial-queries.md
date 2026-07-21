@@ -52,7 +52,7 @@ Use geography when:
 
 ```sql
 -- Geography to geometry (for functions not available on geography)
-SELECT ST_Area(location::geometry) FROM regions;
+SELECT ST_X(location::geometry), ST_Y(location::geometry) FROM stores;
 
 -- Geometry to geography (for accurate distance)
 SELECT ST_Distance(a.geom::geography, b.geom::geography) FROM places a, places b;
@@ -439,9 +439,9 @@ ORDER BY location <-> ST_MakePoint(-73.9857, 40.7484)::geography
 LIMIT 5;
 ```
 
-**Important**: The `<->` operator with geography uses the centroid of the bounding box
-for index-based ordering, then recomputes exact distance. For geometry, it uses actual
-distance. For precise results with geography, combine with `ST_Distance` in the SELECT.
+**Important**: Since PostGIS 2.2, `<->` returns true distance for both geometry and
+geography (index-backed KNN ordering matches `ST_Distance`). Include `ST_Distance` in the
+SELECT when the actual distance value is needed in the results.
 
 ### KNN with Distance Cutoff
 

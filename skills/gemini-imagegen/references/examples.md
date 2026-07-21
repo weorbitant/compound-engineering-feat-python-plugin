@@ -108,12 +108,16 @@ response = client.models.generate_content(
 
 ## Converting JPEG → PNG if required
 
+`part.as_image().save()` writes the raw (JPEG) bytes regardless of extension. Re-encode
+through PIL to get a real PNG:
+
 ```python
+import io
 from PIL import Image
+
 for part in response.parts:
     if part.inline_data:
-        img = part.as_image()
-        img.save("output.png", format="PNG")
+        Image.open(io.BytesIO(part.inline_data.data)).save("output.png")
 ```
 
 Verify with `file image.png` — if it reports "JPEG image data", rename to `.jpg`.

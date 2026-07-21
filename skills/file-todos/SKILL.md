@@ -87,7 +87,7 @@ More in [references/workflows.md](./references/workflows.md).
 | Trigger | Flow | Tool |
 |---------|------|------|
 | Code review | `/workflows:review` → findings → `/triage` → todos | Review agent + skill |
-| PR comments | `/resolve_pr_parallel` → individual fixes → todos | gh CLI + skill |
+| PR comments | `/resolve-pr-parallel` → individual fixes → todos | gh CLI + skill |
 | Code TODOs | `/resolve_todo_parallel` → fixes + complex todos | Agent + skill |
 | Planning | Brainstorm → create todo → work → complete | Skill |
 | Feedback | Discussion → create → triage → work | Skill + slash |

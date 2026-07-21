@@ -37,7 +37,7 @@ class ImageChat:
     
     def __init__(
         self,
-        model: str = "gemini-2.5-flash-image",
+        model: str = "gemini-3-pro-image-preview",
         output_dir: str = ".",
     ):
         api_key = os.environ.get("GEMINI_API_KEY")
@@ -99,7 +99,7 @@ class ImageChat:
         if filename is None:
             self.image_count += 1
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"image_{timestamp}_{self.image_count}.png"
+            filename = f"image_{timestamp}_{self.image_count}.jpg"
         
         filepath = self.output_dir / filename
         self.current_image.save(filepath)
@@ -120,7 +120,7 @@ def main():
     )
     parser.add_argument(
         "--model", "-m",
-        default="gemini-2.5-flash-image",
+        default="gemini-3-pro-image-preview",
         choices=["gemini-2.5-flash-image", "gemini-3-pro-image-preview"],
         help="Model to use"
     )
@@ -195,7 +195,7 @@ def main():
         try:
             # If we have a loaded image and this is first message, include it
             image_to_send = None
-            if chat.current_image and not chat.chat.history:
+            if chat.current_image and not chat.chat.get_history():
                 image_to_send = chat.current_image
             
             text, image = chat.send_message(user_input, image_to_send)

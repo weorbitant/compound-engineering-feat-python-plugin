@@ -129,7 +129,7 @@ Projects can inject additional skills into any workflow command via `compound-en
 ```yaml
 ---
 workflow_skills:
-  brainstorm: [django-patterns, holafly-domain]
+  brainstorm: [django-patterns, my-company-domain]
   plan: [django-patterns]
   work: [django-patterns, pytest-patterns]
   review: [django-patterns, pytest-patterns]

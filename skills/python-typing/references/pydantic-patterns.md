@@ -44,7 +44,7 @@ class StrictUser(BaseModel):
 ## Field Configuration
 
 ```python
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 class Product(BaseModel):
     name: str = Field(min_length=1, max_length=200)
@@ -397,11 +397,11 @@ class WrappedResponse(BaseModel):
 Load settings from environment variables, `.env` files, and other sources.
 
 ```python
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, SecretStr
 
 class DatabaseSettings(BaseSettings):
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_prefix="DB_",
         env_file=".env",
         env_file_encoding="utf-8",
@@ -414,7 +414,7 @@ class DatabaseSettings(BaseSettings):
     password: SecretStr
 
 class AppSettings(BaseSettings):
-    model_config = ConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env")
 
     debug: bool = False
     secret_key: SecretStr
@@ -433,17 +433,17 @@ print(settings.db.password.get_secret_value())  # "secret"
 ### Nested Settings with Environment Variable Prefixes
 
 ```python
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class RedisSettings(BaseSettings):
-    model_config = ConfigDict(env_prefix="REDIS_")
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
 
     host: str = "localhost"
     port: int = 6379
     db: int = 0
 
 class CacheSettings(BaseSettings):
-    model_config = ConfigDict(env_prefix="CACHE_")
+    model_config = SettingsConfigDict(env_prefix="CACHE_")
 
     ttl: int = 300
     redis: RedisSettings = RedisSettings()
@@ -528,7 +528,7 @@ Create reusable model templates parameterized by type.
 
 ```python
 from typing import Generic, TypeVar
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
 
 T = TypeVar("T")
 
@@ -567,8 +567,8 @@ response = UserPage(
 ### Generic with Multiple Parameters
 
 ```python
-from typing import Generic, TypeVar
-from pydantic import BaseModel
+from typing import Generic, Self, TypeVar
+from pydantic import BaseModel, model_validator
 
 T = TypeVar("T")
 E = TypeVar("E")
@@ -763,12 +763,12 @@ def format_validation_errors(exc: ValidationError) -> dict[str, list[str]]:
 Share common fields and configuration across models.
 
 ```python
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field
+from datetime import datetime, timezone
+from pydantic import BaseModel, Field, computed_field
 
 class TimestampedModel(BaseModel):
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SoftDeletableModel(TimestampedModel):
     deleted_at: datetime | None = None

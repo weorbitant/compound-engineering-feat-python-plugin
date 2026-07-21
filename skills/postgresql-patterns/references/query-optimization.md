@@ -187,7 +187,7 @@ WITH recent_orders AS (
 SELECT * FROM recent_orders WHERE status = 'pending';
 
 -- Force materialization: compute once, reuse multiple times
-WITH MATERIALIZED monthly_stats AS (
+WITH monthly_stats AS MATERIALIZED (
     SELECT
         date_trunc('month', created_at) AS month,
         COUNT(*) AS order_count,
@@ -200,7 +200,7 @@ UNION ALL
 SELECT * FROM monthly_stats WHERE revenue > 50000;
 
 -- Force inlining (explicit)
-WITH NOT MATERIALIZED filtered AS (
+WITH filtered AS NOT MATERIALIZED (
     SELECT * FROM orders WHERE status = 'active'
 )
 SELECT * FROM filtered WHERE total_amount > 100;
@@ -462,8 +462,11 @@ SELECT pg_try_advisory_lock(hashtext('process-payments'));
 
 ```python
 # Advisory lock in Python
+from contextlib import contextmanager
+
 import psycopg
 
+@contextmanager
 def with_advisory_lock(conn: psycopg.Connection, lock_name: str):
     """Context manager for PostgreSQL advisory locks."""
     import hashlib

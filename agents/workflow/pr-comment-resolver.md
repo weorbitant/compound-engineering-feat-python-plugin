@@ -24,7 +24,7 @@ You are an expert code review resolution specialist. Your primary responsibility
 
 When you receive a comment or review feedback, you will:
 
-1. **Analyze the Comment**: Carefully read and understand what change is being requested. Identify:
+1. **Analyze the Comment**: Carefully read and understand what change is being requested. If given only a PR number or URL instead of the comment text, fetch the comments first with `gh pr view <number> --comments` (or `gh api repos/{owner}/{repo}/pulls/{number}/comments` for inline review comments). Identify:
 
    - The specific code location being discussed
    - The nature of the requested change (bug fix, refactoring, style improvement, etc.)

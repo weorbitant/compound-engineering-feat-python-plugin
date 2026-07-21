@@ -3,12 +3,12 @@
 Compose multiple images into a new image using Gemini API.
 
 Usage:
-    python compose_images.py "instruction" output.png image1.png [image2.png ...]
+    python compose_images.py "instruction" output.jpg image1.png [image2.png ...]
 
 Examples:
-    python compose_images.py "Create a group photo of these people" group.png person1.png person2.png
-    python compose_images.py "Put the cat from the first image on the couch from the second" result.png cat.png couch.png
-    python compose_images.py "Apply the art style from the first image to the scene in the second" styled.png style.png photo.png
+    python compose_images.py "Create a group photo of these people" group.jpg person1.png person2.png
+    python compose_images.py "Put the cat from the first image on the couch from the second" result.jpg cat.png couch.png
+    python compose_images.py "Apply the art style from the first image to the scene in the second" styled.jpg style.png photo.png
 
 Note: Supports up to 14 reference images (Gemini 3 Pro only).
 

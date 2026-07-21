@@ -423,9 +423,9 @@ Different agents need different intelligence levels. Use the cheapest model that
 
 ```swift
 enum ModelTier {
-    case fast      // claude-3-haiku: Quick, cheap, simple tasks
-    case balanced  // claude-3-sonnet: Good balance for most tasks
-    case powerful  // claude-3-opus: Complex reasoning, synthesis
+    case fast      // Haiku: Quick, cheap, simple tasks
+    case balanced  // Sonnet: Good balance for most tasks
+    case powerful  // Opus: Complex reasoning, synthesis
 }
 
 struct AgentConfig {

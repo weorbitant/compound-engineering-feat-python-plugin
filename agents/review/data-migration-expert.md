@@ -64,12 +64,12 @@ For every data migration or backfill, you must:
 
 - [ ] Is the code path behind a feature flag or environment variable?
 - [ ] If we need to revert, how do we restore the data? Is there a snapshot/backfill procedure?
-- [ ] Are manual scripts written as idempotent rake tasks with SELECT verification?
+- [ ] Are manual scripts written as idempotent management commands with SELECT verification?
 
 ### 6. Structural Refactors & Code Search
 
 - [ ] Search for every reference to removed columns/tables/associations
-- [ ] Check background jobs, admin pages, rake tasks, and views for deleted associations
+- [ ] Check background tasks, admin pages, management commands, and views for deleted relations
 - [ ] Do any serializers, APIs, or analytics jobs expect old columns?
 - [ ] Document the exact search commands run so future reviewers can repeat them
 
@@ -97,14 +97,15 @@ WHERE new_column = '<expected_value>';
 ## Common Bugs to Catch
 
 1. **Swapped IDs** - `1 => TypeA, 2 => TypeB` in code but `1 => TypeB, 2 => TypeA` in production
-2. **Missing error handling** - `.fetch(id)` crashes on unexpected values instead of fallback
-3. **Orphaned eager loads** - `includes(:deleted_association)` causes runtime errors
+2. **Missing error handling** - `MAPPING[value]` raises `KeyError` (or `.get()` returns silent `None`) on unexpected values instead of an explicit fallback
+3. **Orphaned eager loads** - `select_related`/`prefetch_related` referencing a removed relation causes runtime errors
 4. **Incomplete dual-write** - New records only write new column, breaking rollback
 
 ## Output Format
 
 For each issue found, cite:
 - **File:Line** - Exact location
+- **Severity** - Critical (blocks approval) / Concern (needs answer before deploy) / Improvement
 - **Issue** - What's wrong
 - **Blast Radius** - How many records/users affected
 - **Fix** - Specific code change needed

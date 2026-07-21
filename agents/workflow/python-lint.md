@@ -37,7 +37,7 @@ Before running any checks, understand the project layout:
 
 - Check for `pyproject.toml` to find ruff and mypy configuration
 - Determine if the project uses `src/` layout or flat layout
-- Check if `poetry` is used (look for `poetry.lock`) to decide between `poetry run <cmd>` vs `<cmd>` directly
+- Detect the package manager to pick the command runner: `poetry.lock` → `poetry run <cmd>`; `uv.lock` → `uv run <cmd>`; otherwise run `<cmd>` directly. Apply the chosen runner to every command below.
 - Check for existing ruff and mypy configuration sections in `pyproject.toml`, `ruff.toml`, `mypy.ini`, or `setup.cfg`
 
 ### 2. Run Ruff Lint Check

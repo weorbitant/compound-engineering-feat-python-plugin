@@ -540,12 +540,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup: initialize resources
     logger.info("🚀 Starting up, initializing connection pool")
     app.state.db_pool = await create_pool()
-    app.state.redis = await aioredis.from_url(settings.redis_url)
+    app.state.redis = aioredis.from_url(settings.redis_url)
     yield
     # Shutdown: clean up resources
     logger.info("🛑 Shutting down, closing connections")
     await app.state.db_pool.close()
-    await app.state.redis.close()
+    await app.state.redis.aclose()
 
 
 app = FastAPI(lifespan=lifespan)

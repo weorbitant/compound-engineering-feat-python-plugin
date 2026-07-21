@@ -14,7 +14,7 @@ integration tests over excessive mocking.
 
 - **Plain test functions** -- Never use `TestCase` classes. Write standalone `test_` functions
 - **Fixtures for setup** -- Use fixtures for all test setup; shared fixtures go in `conftest.py`
-- **Run with poetry** -- Execute tests using `workspace/.venv` environment and poetry:
+- **Run with poetry** -- Execute tests through the project's poetry-managed environment:
   `poetry run pytest`
 - **`| None` over `Optional`** -- Use modern union syntax in all test code
 - **100-character line limit** -- Applies to test files as well

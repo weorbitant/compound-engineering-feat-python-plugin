@@ -73,7 +73,7 @@ When reviewing database-related code, systematically evaluate each of these area
   - :red_circle: FAIL: `CREATE INDEX` without `CONCURRENTLY` on tables with active traffic
   - :white_check_mark: PASS: `CREATE INDEX CONCURRENTLY` for all indexes on existing tables
 - **Zero-downtime deployment**: Migrations must not break the previous application version
-  - Adding a NOT NULL column without a default breaks old code
+  - Adding a NOT NULL column without a default fails outright on non-empty tables, and breaks INSERTs from the still-running previous application version
   - Renaming columns/tables requires a multi-step migration (add new, copy, remove old)
 - **Data migrations**: Separate schema changes from data changes
   - Batch large data updates to avoid long-running transactions
@@ -88,7 +88,7 @@ When reviewing database-related code, systematically evaluate each of these area
 - Avoid deeply nested JSONB queries that cannot use indexes efficiently
 - :red_circle: FAIL: Storing structured, queryable data in JSONB when a proper relational schema is more appropriate
 - :white_check_mark: PASS: JSONB for truly semi-structured data (user preferences, metadata, audit payloads)
-- Check for missing `->>`/`->`operator usage (text extraction vs JSON element)
+- Check for correct `->>` (text) vs `->` (JSON element) operator usage
 
 ### 6. Connection Pooling
 

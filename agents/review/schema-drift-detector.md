@@ -113,19 +113,19 @@ dependencies = [
 
 **Django:**
 ```bash
-# Option 1: Remove unrelated migrations and regenerate
-git checkout main -- */migrations/
-python manage.py makemigrations
+# Option 1: Remove unrelated migration files (they are new on this branch,
+# so git checkout from main cannot remove them -- use git rm)
+git rm app/migrations/0047_unrelated_change.py
 
-# Option 2: If migration has mixed changes, delete and recreate
+# Option 2: If the PR's own migration has mixed changes, delete and recreate
 rm app/migrations/0046_mixed_changes.py
 python manage.py makemigrations app --name descriptive_name
 ```
 
 **Alembic:**
 ```bash
-# Option 1: Remove unrelated revision and regenerate
-git checkout main -- alembic/versions/
+# Option 1: Remove the unrelated revision file and regenerate the PR's revision
+git rm alembic/versions/abc123_unrelated_change.py
 alembic revision --autogenerate -m "descriptive message"
 
 # Option 2: Manually edit the revision to remove unrelated operations
@@ -162,8 +162,8 @@ Unrelated migration operations found:
    - AddField: user.gemini_api_key (TextField)
 
 **Action Required:**
-Remove unrelated migration files and regenerate:
-`git checkout main -- users/migrations/0047_add_api_keys.py`
+Remove the unrelated migration file from the branch:
+`git rm users/migrations/0047_add_api_keys.py`
 ```
 
 ## Integration with Other Reviewers

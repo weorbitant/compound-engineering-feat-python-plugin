@@ -72,6 +72,7 @@ async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
 from collections.abc import AsyncGenerator
 
 from fastapi import Depends
+from sqlalchemy import select
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
@@ -83,9 +84,10 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def get_user(
     user_id: int,
     session: AsyncSession = Depends(get_session),
-) -> User | None:
+) -> UserResponse | None:
     result = await session.execute(select(User).where(User.id == user_id))
-    return result.scalar_one_or_none()
+    user = result.scalar_one_or_none()
+    return UserResponse.model_validate(user) if user else None
 ```
 
 ## Type Hints

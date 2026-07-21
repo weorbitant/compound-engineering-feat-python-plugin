@@ -90,7 +90,7 @@ Systematically evaluate the codebase against every item below. For each item, as
 - Ensure `upgrade()` and `downgrade()` are both implemented and tested
 - Confirm data migrations are separate from schema migrations
 - Flag destructive operations without safeguards: `drop_table`, `drop_column` without backup strategy
-- Check for long-running operations that lock tables (`ADD COLUMN ... DEFAULT` on large tables)
+- Check for long-running operations that lock tables (`ALTER COLUMN ... TYPE`, adding `NOT NULL` without a validated constraint, `CREATE INDEX` without `CONCURRENTLY` on large tables; note `ADD COLUMN ... DEFAULT <constant>` is fast on PostgreSQL 11+, but volatile defaults still rewrite the table)
 
 ### 8. Async Engine Configuration
 

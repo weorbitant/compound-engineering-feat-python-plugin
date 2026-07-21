@@ -77,8 +77,9 @@ Acceptable `typing` imports (no built-in equivalent):
 - `Protocol`, `runtime_checkable`
 - `TypedDict`, `NamedTuple`
 - `Literal`, `Final`, `Annotated`
-- `Callable`, `Awaitable`, `AsyncIterator`
 - `overload`, `TYPE_CHECKING`
+
+For `Callable`, `Awaitable`, `AsyncIterator`, and other ABCs, require imports from `collections.abc` — the `typing` aliases are deprecated.
 
 ## 3. Pydantic Model Design
 
@@ -220,7 +221,7 @@ Flag:
 
 - Circular import errors that could be solved with `TYPE_CHECKING`
 - Heavy modules imported solely for type annotations at runtime
-- Missing `from __future__ import annotations` when using `TYPE_CHECKING` guards (required for Python < 3.11 to enable lazy evaluation)
+- Missing `from __future__ import annotations` when using `TYPE_CHECKING` guards — without it, annotations referencing guard-only imports must be quoted as strings (deferred annotation evaluation only becomes the default in Python 3.14 via PEP 649)
 
 ## 8. Overuse of Any
 

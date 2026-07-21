@@ -420,44 +420,44 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Startup and shutdown
-logger.info("Starting %s service on port %d", service_name, port)
-logger.info("Shutdown complete for %s", service_name)
+logger.info("🚀 Starting %s service on port %d", service_name, port)
+logger.info("✅ Shutdown complete for %s", service_name)
 
 # Success operations
-logger.info("User %s registered successfully", user_id)
-logger.info("Order %s processed, total: %s", order_id, total)
-logger.info("Migration completed: %d records updated", count)
+logger.info("✅ User %s registered successfully", user_id)
+logger.info("✅ Order %s processed, total: %s", order_id, total)
+logger.info("✅ Migration completed: %d records updated", count)
 
 # Warnings
-logger.warning("Rate limit approaching for API key %s", api_key)
-logger.warning("Retrying request to %s (attempt %d/%d)", url, attempt, max_retries)
-logger.warning("Cache miss for key %s, falling back to DB", cache_key)
+logger.warning("⚠️ Rate limit approaching for API key %s", api_key)
+logger.warning("🔄 Retrying request to %s (attempt %d/%d)", url, attempt, max_retries)
+logger.warning("⚠️ Cache miss for key %s, falling back to DB", cache_key)
 
 # Errors
-logger.error("Failed to process payment for order %s: %s", order_id, error)
-logger.error("Database connection lost: %s", error)
+logger.error("❌ Failed to process payment for order %s: %s", order_id, error)
+logger.error("❌ Database connection lost: %s", error)
 
 # Debug
-logger.debug("Cache hit for key %s", cache_key)
-logger.debug("Request payload: %s", payload)
+logger.debug("🔍 Cache hit for key %s", cache_key)
+logger.debug("🔍 Request payload: %s", payload)
 
 # Task progress
-logger.info("Processing batch %d/%d", current, total)
-logger.info("Sync complete: %d created, %d updated, %d skipped", created, updated, skipped)
+logger.info("🔄 Processing batch %d/%d", current, total)
+logger.info("✅ Sync complete: %d created, %d updated, %d skipped", created, updated, skipped)
 ```
 
 ### Choosing Emojis
 
 | Category | Emoji | Usage |
 |----------|-------|-------|
-| Success / completion | checkmark, rocket, party | Operations that completed |
-| Start / init | rocket, gear, play | Service or process starting |
-| Warning / caution | warning sign, hourglass | Non-fatal issues |
-| Error / failure | cross, fire, stop | Failed operations |
-| Info / progress | magnifying glass, arrow, clipboard | Status updates |
-| Delete / cleanup | wastebasket, broom | Removal operations |
-| Security / auth | lock, key, shield | Auth-related events |
-| Data / sync | database, arrows, package | Data operations |
+| Success / completion | ✅ 🎉 | Operations that completed |
+| Start / init | 🚀 ⚙️ ▶️ | Service or process starting |
+| Warning / caution | ⚠️ ⏳ | Non-fatal issues |
+| Error / failure | ❌ 🔥 🛑 | Failed operations |
+| Info / progress | 🔍 📋 | Status updates |
+| Delete / cleanup | 🗑️ 🧹 | Removal operations |
+| Security / auth | 🔒 🔑 🛡️ | Auth-related events |
+| Data / sync | 📥 📤 🔄 📦 | Data operations |
 
 ---
 

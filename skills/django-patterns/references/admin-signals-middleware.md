@@ -182,6 +182,7 @@ from django.dispatch import receiver
 def notify_on_order_status_change(sender, instance, created, **kwargs):
     if created:
         return  # Skip initial creation
+    # "tracker" requires FieldTracker from django-model-utils on the Order model
     if instance.tracker.has_changed("status"):
         send_status_notification.delay(instance.pk)
         logger.info(

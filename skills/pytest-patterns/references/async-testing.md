@@ -165,7 +165,7 @@ async def test_create_user(async_client, async_session):
 
 ## Testing Celery Tasks
 
-### CELERY_ALWAYS_EAGER
+### Eager Task Execution (`task_always_eager`)
 
 Force tasks to run synchronously in tests.
 
@@ -215,17 +215,16 @@ def test_scheduled_task(mocker):
 ### Testing Task Retry Logic
 
 ```python
+from celery.exceptions import Retry
+
+
 def test_task_retries_on_failure(mocker):
     mocker.patch(
         "myapp.services.external_api.call",
         side_effect=ConnectionError("timeout"),
     )
-    mock_retry = mocker.patch.object(
-        process_webhook,
-        "retry",
-        side_effect=process_webhook.retry(exc=ConnectionError("timeout")),
-    )
-    with pytest.raises(ConnectionError):
+    mock_retry = mocker.patch.object(process_webhook, "retry", side_effect=Retry())
+    with pytest.raises(Retry):
         process_webhook(payload={"event": "payment"})
     mock_retry.assert_called_once()
 ```
@@ -345,10 +344,10 @@ def test_websocket_json():
 ## anyio for Backend-Agnostic Tests
 
 `anyio` provides a backend-agnostic async testing interface that works with both `asyncio`
-and `trio`.
+and `trio`. It ships with its own pytest plugin -- no separate plugin package is needed.
 
 ```bash
-poetry add --group dev anyio pytest-anyio
+poetry add --group dev anyio
 ```
 
 ```python
@@ -412,26 +411,24 @@ def event_loop_policy():
 ### Event Loop Scope
 
 By default, pytest-asyncio creates a new event loop per test function. For session-scoped
-async fixtures, configure the loop scope:
-
-```python
-# conftest.py
-import pytest
-
-
-@pytest.fixture(scope="session")
-def event_loop():
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-```
-
-Or with pytest-asyncio 0.23+:
+async fixtures, configure the default fixture loop scope (pytest-asyncio 0.23+; overriding
+the `event_loop` fixture is deprecated and removed in pytest-asyncio 1.0):
 
 ```toml
 # pyproject.toml
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "session"
+```
+
+Override the loop scope per fixture or per test when needed:
+
+```python
+@pytest_asyncio.fixture(loop_scope="session")
+async def shared_resource(): ...
+
+
+@pytest.mark.asyncio(loop_scope="session")
+async def test_uses_session_loop(): ...
 ```
 
 ### Isolation Between Tests

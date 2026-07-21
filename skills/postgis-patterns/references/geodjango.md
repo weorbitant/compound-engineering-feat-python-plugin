@@ -52,8 +52,11 @@ standard `django.db.backends.postgresql`.
 ```sql
 -- Run once on the database
 CREATE EXTENSION IF NOT EXISTS postgis;
+```
 
--- Or use a migration
+Or use a migration:
+
+```python
 from django.contrib.postgres.operations import CreateExtension
 from django.db import migrations
 
@@ -75,13 +78,9 @@ from django.contrib.gis.db import models
 
 class Store(models.Model):
     name = models.CharField(max_length=200)
+    # Spatial fields create a GiST index automatically (spatial_index=True by default)
     location = models.PointField(srid=4326)
     service_area = models.PolygonField(srid=4326, null=True, blank=True)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=["location"], name="idx_store_location"),
-        ]
 
 
 class DeliveryZone(models.Model):
@@ -519,59 +518,68 @@ pip install geoalchemy2
 ```
 
 ```python
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.orm import declarative_base
 from geoalchemy2 import Geometry, Geography
+from geoalchemy2.elements import WKBElement
+from sqlalchemy import String, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
+
 engine = create_engine("postgresql://user:pass@localhost/mydb")
 
 
 class Store(Base):
     __tablename__ = "stores"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(200), nullable=False)
-    location = Column(Geography(geometry_type="POINT", srid=4326), nullable=False)
-    service_area = Column(Geometry(geometry_type="POLYGON", srid=4326))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(200))
+    location: Mapped[WKBElement] = mapped_column(
+        Geography(geometry_type="POINT", srid=4326)
+    )
+    service_area: Mapped[WKBElement | None] = mapped_column(
+        Geometry(geometry_type="POLYGON", srid=4326)
+    )
 ```
 
 ### Spatial Queries
 
+GeoAlchemy2 registers its `ST_*` functions on `sqlalchemy.func` — no separate function
+import is needed.
+
 ```python
-from geoalchemy2 import func as geo_func
-from geoalchemy2.elements import WKTElement, WKBElement
-from sqlalchemy import func
+from geoalchemy2.elements import WKTElement
+from sqlalchemy import func, select
 
 ref_point = WKTElement("POINT(-73.9857 40.7484)", srid=4326)
 
 # Stores within 5 km
-nearby = (
-    session.query(Store)
-    .filter(geo_func.ST_DWithin(Store.location, ref_point, 5000))
-    .all()
-)
+nearby = session.scalars(
+    select(Store).where(func.ST_DWithin(Store.location, ref_point, 5000))
+).all()
 
 # With distance annotation
-from sqlalchemy import cast, Float
-
-nearby = (
-    session.query(
+stmt = (
+    select(
         Store,
-        geo_func.ST_Distance(Store.location, ref_point).label("distance_m"),
+        func.ST_Distance(Store.location, ref_point).label("distance_m"),
     )
-    .filter(geo_func.ST_DWithin(Store.location, ref_point, 5000))
+    .where(func.ST_DWithin(Store.location, ref_point, 5000))
     .order_by("distance_m")
-    .all()
 )
+rows = session.execute(stmt).all()  # list of (Store, distance_m) rows
 
 # Containment
-zone = session.query(DeliveryZone).filter_by(name="Manhattan").one()
-stores_in_zone = (
-    session.query(Store)
-    .filter(geo_func.ST_Contains(zone.boundary, Store.location.cast(Geometry)))
-    .all()
-)
+zone = session.scalars(
+    select(DeliveryZone).where(DeliveryZone.name == "Manhattan")
+).one()
+stores_in_zone = session.scalars(
+    select(Store).where(
+        func.ST_Contains(zone.boundary, Store.location.cast(Geometry))
+    )
+).all()
 ```
 
 ### GeoJSON with GeoAlchemy2
@@ -580,17 +588,17 @@ stores_in_zone = (
 import json
 from geoalchemy2.shape import to_shape
 from shapely.geometry import mapping
+from sqlalchemy import func, select
 
 # Convert to GeoJSON via Shapely
-store = session.query(Store).first()
+store = session.scalars(select(Store)).first()
 shapely_point = to_shape(store.location)
 geojson = mapping(shapely_point)
 # {'type': 'Point', 'coordinates': (-73.9857, 40.7484)}
 
 # Or use ST_AsGeoJSON in the query
-result = session.query(
-    Store.name,
-    geo_func.ST_AsGeoJSON(Store.location).label("geojson"),
+result = session.execute(
+    select(Store.name, func.ST_AsGeoJSON(Store.location).label("geojson"))
 ).first()
 geojson_dict = json.loads(result.geojson)
 ```
@@ -598,11 +606,12 @@ geojson_dict = json.loads(result.geojson)
 ### FastAPI Integration
 
 ```python
-from fastapi import FastAPI, Depends
-from sqlalchemy.orm import Session
-from geoalchemy2 import func as geo_func
+from fastapi import Depends, FastAPI
+from geoalchemy2 import Geometry
 from geoalchemy2.elements import WKTElement
 from pydantic import BaseModel
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 
 class NearbyRequest(BaseModel):
@@ -627,18 +636,18 @@ def get_nearby_stores(
     ref = WKTElement(f"POINT({params.longitude} {params.latitude})", srid=4326)
     radius_m = params.radius_km * 1000
 
-    results = (
-        db.query(
+    stmt = (
+        select(
             Store.id,
             Store.name,
-            geo_func.ST_Distance(Store.location, ref).label("distance_m"),
-            geo_func.ST_X(Store.location.cast(Geometry)).label("longitude"),
-            geo_func.ST_Y(Store.location.cast(Geometry)).label("latitude"),
+            func.ST_Distance(Store.location, ref).label("distance_m"),
+            func.ST_X(Store.location.cast(Geometry)).label("longitude"),
+            func.ST_Y(Store.location.cast(Geometry)).label("latitude"),
         )
-        .filter(geo_func.ST_DWithin(Store.location, ref, radius_m))
+        .where(func.ST_DWithin(Store.location, ref, radius_m))
         .order_by("distance_m")
-        .all()
     )
+    results = db.execute(stmt).all()
 
     return [
         StoreResponse(
@@ -760,7 +769,7 @@ def test_store_in_zone(manhattan_zone, times_square_store, brooklyn_store):
 ```python
 import pytest
 from geoalchemy2.elements import WKTElement
-from geoalchemy2 import func as geo_func
+from sqlalchemy import func, select
 
 
 @pytest.fixture
@@ -777,11 +786,9 @@ def sample_store(db_session):
 def test_nearby_query(db_session, sample_store):
     ref = WKTElement("POINT(-73.9860 40.7490)", srid=4326)
 
-    results = (
-        db_session.query(Store)
-        .filter(geo_func.ST_DWithin(Store.location, ref, 1000))
-        .all()
-    )
+    results = db_session.scalars(
+        select(Store).where(func.ST_DWithin(Store.location, ref, 1000))
+    ).all()
 
     assert len(results) == 1
     assert results[0].name == "Test Store"
@@ -806,6 +813,9 @@ Django's test runner creates the PostGIS extension automatically when using the
 `postgis` backend. For GeoAlchemy2, install the extension in a test fixture:
 
 ```python
+from sqlalchemy import create_engine, text
+
+
 @pytest.fixture(scope="session")
 def engine():
     engine = create_engine("postgresql://user:pass@localhost/test_db")

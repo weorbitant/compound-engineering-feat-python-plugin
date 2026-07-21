@@ -46,7 +46,7 @@ if [[ " ${missing[*]} " =~ " superpowers " ]]; then
 fi
 
 warning="$warning
-Run the install commands above. [REQUIRED] dependencies must be installed for v3.0.0 workflow commands to work."
+Run the install commands above. [REQUIRED] dependencies must be installed for the workflow commands to work."
 
 echo "$warning" >&2
 exit 0

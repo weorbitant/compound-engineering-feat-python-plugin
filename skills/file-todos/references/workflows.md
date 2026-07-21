@@ -28,7 +28,7 @@
 1. List pending: `ls todos/*-pending-*.md`
 2. For each: read Problem Statement + Findings + Proposed Solutions; decide approve/defer/modify priority
 3. For approved:
-   - Rename: `mv {file}-pending-{pri}-{desc}.md {file}-ready-{pri}-{desc}.md`
+   - Rename: `mv {id}-pending-{pri}-{desc}.md {id}-ready-{pri}-{desc}.md`
    - Frontmatter: `status: pending` → `status: ready`
    - Fill "Recommended Action"
    - Adjust priority if needed
@@ -53,7 +53,7 @@ grep -l 'dependencies:.*"002"' todos/*.md
 
 # Verify blockers before starting
 for dep in 001 002 003; do
-  [ -f "todos/${dep}-complete-*.md" ] || echo "Issue $dep not complete"
+  ls todos/${dep}-complete-*.md >/dev/null 2>&1 || echo "Issue $dep not complete"
 done
 ```
 
@@ -82,7 +82,7 @@ Work logs serve as: historical record, documentation of attempts, knowledge shar
 
 1. Verify all acceptance criteria checked
 2. Add final Work Log entry with results
-3. Rename: `mv {file}-ready-{pri}-{desc}.md {file}-complete-{pri}-{desc}.md`
+3. Rename: `mv {id}-ready-{pri}-{desc}.md {id}-complete-{pri}-{desc}.md`
 4. Frontmatter: `status: ready` → `status: complete`
 5. Check for unblocked work: `grep -l 'dependencies:.*"002"' todos/*-ready-*.md`
 6. Commit: `feat: resolve issue 002`

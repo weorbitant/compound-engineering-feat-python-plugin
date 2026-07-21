@@ -523,6 +523,10 @@ class DynamicUserThrottle(SimpleRateThrottle):
 
     def allow_request(self, request, view):
         self._request = request
+        # Re-parse the rate per request: SimpleRateThrottle resolves the rate
+        # once in __init__, so a dynamic get_rate() has no effect without this.
+        self.rate = self.get_rate()
+        self.num_requests, self.duration = self.parse_rate(self.rate)
         return super().allow_request(request, view)
 ```
 

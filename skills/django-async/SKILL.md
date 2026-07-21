@@ -155,16 +155,17 @@ def process_report(report_id: int, user_id: int) -> dict:
 
 ```python
 # consumers.py
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
 
 class NotificationConsumer(JsonWebsocketConsumer):
     def connect(self):
         self.user_group = f"user_{self.scope['user'].id}"
-        self.channel_layer.group_add(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_add)(self.user_group, self.channel_name)
         self.accept()
 
     def disconnect(self, close_code):
-        self.channel_layer.group_discard(self.user_group, self.channel_name)
+        async_to_sync(self.channel_layer.group_discard)(self.user_group, self.channel_name)
 
     def report_ready(self, event):
         self.send_json({"type": "report_ready", "data": event})

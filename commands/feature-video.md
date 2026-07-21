@@ -218,11 +218,11 @@ PUBLIC_BASE_URL="https://<your-public-r2-domain>.r2.dev"
 
 # Upload video, preview GIF, and screenshots to cloud storage
 # Use --s3-no-check-bucket to avoid permission errors
-rclone copy tmp/videos/ r2:kieran-claude/pr-videos/pr-[number]/ --s3-no-check-bucket --progress
-rclone copy tmp/screenshots/ r2:kieran-claude/pr-videos/pr-[number]/screenshots/ --s3-no-check-bucket --progress
+rclone copy tmp/videos/ r2:<your-bucket>/pr-videos/pr-[number]/ --s3-no-check-bucket --progress
+rclone copy tmp/screenshots/ r2:<your-bucket>/pr-videos/pr-[number]/screenshots/ --s3-no-check-bucket --progress
 
 # List uploaded files
-rclone ls r2:kieran-claude/pr-videos/pr-[number]/
+rclone ls r2:<your-bucket>/pr-videos/pr-[number]/
 
 # Build and validate public URLs BEFORE updating PR
 VIDEO_URL="$PUBLIC_BASE_URL/pr-videos/pr-[number]/feature-demo.mp4"

@@ -576,16 +576,12 @@ async def get_user(
 ### Generic Repository Base
 
 ```python
-from typing import TypeVar
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
-ModelT = TypeVar("ModelT", bound=DeclarativeBase)
 
-
-class BaseRepository[ModelT]:
+class BaseRepository[ModelT: DeclarativeBase]:
     model: type[ModelT]
 
     def __init__(self, session: AsyncSession) -> None:

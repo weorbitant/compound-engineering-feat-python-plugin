@@ -263,12 +263,16 @@ def list_order_items(
 <authentication>
 ## Authentication
 
-### Session-Based (default Django auth)
+### Session-Based (Django auth)
+
+Endpoints are public unless auth is configured. Use `django_auth` to require a
+logged-in Django session (CSRF applies to unsafe methods):
 
 ```python
-api = NinjaAPI()
+from ninja.security import django_auth
 
-# Django session auth is used by default when no auth is specified
+api = NinjaAPI(auth=django_auth)
+
 @api.get("/me", response=UserOut)
 def get_current_user(request):
     return request.user
@@ -497,11 +501,13 @@ def list_orders(request):
 
 ### Cursor-Based Pagination
 
+Django Ninja has no built-in cursor pagination -- implement it on `PaginationBase`:
+
 ```python
-from ninja.pagination import paginate, CursorPagination
+from ninja.pagination import paginate, PaginationBase
 
 
-class OrderCursorPagination(CursorPagination):
+class OrderCursorPagination(PaginationBase):
     class Input(Schema):
         cursor: str | None = None
         limit: int = 25
@@ -625,28 +631,26 @@ from config.api import api
 @pytest.fixture
 def client():
     return TestClient(api)
-
-
-@pytest.fixture
-def authenticated_client(client, user):
-    client.force_authenticate(user)
-    return client
 ```
+
+Ninja's `TestClient` has no `force_authenticate` (that is DRF's `APIClient`).
+Authenticate by passing `user=` per request -- extra keyword arguments are set
+as attributes on the mock request.
 
 ### Testing Endpoints
 
 ```python
-def test_list_orders(authenticated_client, order_factory):
+def test_list_orders(client, user, order_factory):
     order_factory.create_batch(3)
 
-    response = authenticated_client.get("/orders/")
+    response = client.get("/orders/", user=user)
 
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 3
 
 
-def test_create_order(authenticated_client, product):
+def test_create_order(client, user, product):
     payload = {
         "shipping_address": "123 Main St, City, State 12345",
         "items": [
@@ -654,20 +658,20 @@ def test_create_order(authenticated_client, product):
         ],
     }
 
-    response = authenticated_client.post("/orders/", json=payload)
+    response = client.post("/orders/", json=payload, user=user)
 
     assert response.status_code == 201
     data = response.json()
     assert data["total"] == str(product.price * 2)
 
 
-def test_create_order_validation_error(authenticated_client):
+def test_create_order_validation_error(client, user):
     payload = {
         "shipping_address": "short",
         "items": [],
     }
 
-    response = authenticated_client.post("/orders/", json=payload)
+    response = client.post("/orders/", json=payload, user=user)
 
     assert response.status_code == 422
 ```

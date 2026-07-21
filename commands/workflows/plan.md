@@ -69,7 +69,7 @@ If Step 2 returned a non-empty service list, **after the superpowers skill retur
 
    Determine dependencies from the `<focus_context>` block's `dependencies:` section. Ask the user to confirm or adjust the graph before writing the final plan.
 
-3. **Per-service plan files** — for each focused service, write a copy of the plan to `{service}/docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md` (create the directory with `mkdir -p` first). Each per-service plan contains the tasks scoped to that service, the acceptance criteria, and the file changes for that service only.
+3. **Per-service plan files** — for each focused service, write a copy of the plan to `{service}/docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md` (create the directory with `mkdir -p` first). Each per-service plan contains the tasks scoped to that service, the acceptance criteria, and the file changes for that service only. Copy the plan header — including the `## Global Constraints` section and each task's `**Interfaces:**` block (both part of the superpowers plan format) — verbatim into every per-service plan; task implementers only ever see their own plan file, so cross-service signatures must not be lost in the split.
 
 4. **Root overview** — keep the root-level plan at `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`. **Rewrite** its body to contain only: the dependency graph, execution order, links to the per-service plans (from sub-step 3), and any cross-cutting concerns. The detailed per-service tasks now live in the per-service files — they should NOT be duplicated in the root.
 

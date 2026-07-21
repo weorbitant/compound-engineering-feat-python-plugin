@@ -45,8 +45,9 @@ When reviewing spatial code, systematically evaluate each of these areas:
 - Check migrations for SRID mismatches between model definition and database column
 - When mixing SRIDs is unavoidable, verify explicit `ST_Transform(geom, target_srid)` at every boundary:
   ```sql
-  -- Correct: explicit transform before comparison
-  WHERE ST_DWithin(ST_Transform(user_location, 4326), store_location, 5000)
+  -- Correct: explicit transform to a common SRID before comparison
+  -- (cast to geography so the 5000 is meters, not degrees)
+  WHERE ST_DWithin(ST_Transform(user_location, 4326)::geography, store_location::geography, 5000)
   ```
 - :red_circle: FAIL: SRID 0 (unknown) on any production spatial column
 

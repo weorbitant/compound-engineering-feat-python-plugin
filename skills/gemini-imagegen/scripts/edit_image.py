@@ -3,12 +3,14 @@
 Edit existing images using Gemini API.
 
 Usage:
-    python edit_image.py input.png "edit instruction" output.png [options]
+    python edit_image.py input.png "edit instruction" output.jpg [options]
 
 Examples:
-    python edit_image.py photo.png "Add a rainbow in the sky" edited.png
+    python edit_image.py photo.png "Add a rainbow in the sky" edited.jpg
     python edit_image.py room.jpg "Change the sofa to red leather" room_edited.jpg
-    python edit_image.py portrait.png "Make it look like a Van Gogh painting" artistic.png --model gemini-3-pro-image-preview
+    python edit_image.py portrait.png "Make it look like a Van Gogh painting" artistic.jpg
+
+Note: The API returns JPEG bytes; save outputs with a .jpg extension.
 
 Environment:
     GEMINI_API_KEY - Required API key
@@ -27,7 +29,7 @@ def edit_image(
     input_path: str,
     instruction: str,
     output_path: str,
-    model: str = "gemini-2.5-flash-image",
+    model: str = "gemini-3-pro-image-preview",
     aspect_ratio: str | None = None,
     image_size: str | None = None,
 ) -> str | None:
@@ -104,9 +106,9 @@ def main():
     parser.add_argument("output", help="Output file path")
     parser.add_argument(
         "--model", "-m",
-        default="gemini-2.5-flash-image",
+        default="gemini-3-pro-image-preview",
         choices=["gemini-2.5-flash-image", "gemini-3-pro-image-preview"],
-        help="Model to use (default: gemini-2.5-flash-image)"
+        help="Model to use (default: gemini-3-pro-image-preview)"
     )
     parser.add_argument(
         "--aspect", "-a",

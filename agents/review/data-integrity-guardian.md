@@ -82,4 +82,15 @@ Always prioritize:
 4. Compliance with privacy regulations
 5. Performance impact on production databases
 
-Remember: In production, data integrity issues can be catastrophic. Be thorough, be cautious, and always consider the worst-case scenario.
+## Output Format
+
+Structure the review as:
+
+1. **Summary**: Overall data integrity assessment (1-2 sentences)
+2. **Critical Issues**: Risks that can cause data loss, corruption, or compliance violations
+   - File and location (file:line)
+   - Issue description with the specific corruption scenario
+   - Safe alternative implementation with code example
+3. **Integrity Concerns**: Constraint gaps, transaction boundary risks, and referential integrity weaknesses
+4. **Privacy and Compliance Findings**: PII handling, encryption, retention, and right-to-deletion gaps
+5. **Positive Observations**: Safe patterns worth maintaining
