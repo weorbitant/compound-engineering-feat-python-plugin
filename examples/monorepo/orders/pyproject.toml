@@ -1,0 +1,38 @@
+[project]
+name = "orders"
+version = "0.1.0"
+description = "Order management service (demo)"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115", "lib-common"]
+
+[tool.poetry]
+package-mode = false
+
+# Source for the lib-common entry in [project].dependencies
+[tool.poetry.dependencies]
+lib-common = { path = "../lib-common", develop = true }
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.3"
+httpx = ">=0.28"
+ruff = ">=0.8"
+mypy = ">=1.13"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+# Starlette's TestClient now nudges toward an `httpx2` package; keep httpx until that is vetted.
+filterwarnings = ["ignore:Using `httpx` with `starlette.testclient` is deprecated"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lib_common", "orders", "payments"]

@@ -15,3 +15,21 @@ jobs:
           python-version: "3.12"
       - name: Structural validation
         run: bash scripts/validate.sh
+
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Test demo monorepo (pytest + ruff + mypy)
+        working-directory: examples/monorepo
+        run: |
+          for s in lib-common orders payments; do
+            echo "::group::$s"
+            (cd "$s" && poetry install -q && poetry run pytest -q && poetry run ruff check . && poetry run mypy .) || exit 1
+            echo "::endgroup::"
+          done
