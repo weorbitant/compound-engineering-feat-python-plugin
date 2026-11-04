@@ -1,0 +1,10 @@
+# Local hooks only: no network fetch, uses the ruff installed in each service's venv.
+repos:
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: bash -c 'for s in lib-common orders payments; do (cd "$s" && poetry run ruff check .) || exit 1; done'
+        language: system
+        pass_filenames: false
+        types: [python]

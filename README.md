@@ -7,7 +7,7 @@
 <p align="center"><strong>Superpowers for Python microservices.</strong></p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-4.1.0-6366f1" alt="Version 4.1.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-4.2.0-6366f1" alt="Version 4.2.0"></a>
   <img src="https://img.shields.io/badge/agents-25-4b8bbe" alt="25 agents">
   <img src="https://img.shields.io/badge/commands-17-4b8bbe" alt="17 commands">
   <img src="https://img.shields.io/badge/skills-21-4b8bbe" alt="21 skills">
@@ -291,6 +291,17 @@ All workflow commands accept `--services` for automated invocation (skips all in
 
 Never ships with failing tests, never skips hooks.
 
+## Try It Locally
+
+[`examples/monorepo/`](examples/monorepo/README.md) holds three tiny FastAPI services (`lib-common`, `orders`, `payments`). Spin up a throwaway copy as its own git repo and load this checkout of the plugin:
+
+```bash
+./scripts/sandbox.sh --install
+cd <printed path> && claude --plugin-dir <this repo>
+```
+
+The example README walks through brainstorm → plan → work → review on a cross-service feature and says what to check at each step. CI runs the example's pytest, ruff and mypy so it stays green.
+
 ## Development
 
 `scripts/validate.sh` runs the structural checks CI enforces on every push: frontmatter integrity, reference-link resolution, script compilation, stale-reference guards, and component-count consistency.
@@ -299,7 +310,7 @@ Never ships with failing tests, never skips hooks.
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 4.1.0** — synced with superpowers v7.0.0.
+**Current version: 4.2.0** — adds a demo monorepo for trying the plugin locally.
 
 ## Contributing
 

@@ -9,7 +9,7 @@
       "name": "py-micro-superpowers",
       "source": "./",
       "description": "Superpowers for Python microservices. 25 agents, 17 commands, 21 skills, 1 MCP server.",
-      "version": "4.0.0",
+      "version": "4.2.0",
       "author": {
         "name": "BaronVonSario"
       }
