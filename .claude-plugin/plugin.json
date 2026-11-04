@@ -1,6 +1,6 @@
 {
   "name": "py-micro-superpowers",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Superpowers for Python microservices \u2014 Django, FastAPI, pytest, PostgreSQL review agents and skills built on the superpowers plugin. 25 agents, 17 commands, 21 skills, 1 MCP server.",
   "hooks": {
     "SessionStart": [

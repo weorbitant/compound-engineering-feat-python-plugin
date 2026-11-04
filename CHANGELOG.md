@@ -5,6 +5,33 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0] - 2026-11-04
+
+### Changed
+- **Synced with superpowers v7.0.0** (was v6.1.1). superpowers v7.0.0 or later is now required.
+- `/workflows:brainstorm` handles brainstorming's new sizing. For a quick task or a
+  small change no spec is written, so the per-service spec split and the
+  `/workflows:plan` suggestion are skipped. For a project, brainstorming now hands
+  control back to the wrapper instead of invoking `writing-plans` itself, so the
+  focus gate and the per-service split still run. `<focus_context>` is passed to the
+  builder-check subagent.
+- `/workflows:plan` stops after the user reviews the plan and chooses an execution
+  method. It no longer jumps straight into execution and around the Python quality
+  gate. The per-service split now also carries the `**Spec:**` pointer (rewritten to
+  the service's spec) and gives each `## Review Focus` item to the service that owns
+  it.
+- `/workflows:work` supports both upstream executors through a new
+  `--method subagent|native` flag (Native = the rebuilt `executing-plans`). The
+  per-plan workspace path is documented as `.superpowers/sdd/<plan-basename>/`. The
+  test command must run the project's full suite.
+- `/workflows:review` sends the reviewers' "Declined to judge" items to the user for
+  a decision instead of filing them as todos.
+- CI: `actions/checkout@v5`, `actions/setup-python@v6`.
+
+### Fixed
+- `scripts/check-dependencies.sh` now honors `CLAUDE_CONFIG_DIR` and symlinked plugin
+  directories, and warns when the installed superpowers version is older than 7.0.0.
+
 ## [4.0.0] - 2026-07-21
 
 ### Changed (BREAKING)
