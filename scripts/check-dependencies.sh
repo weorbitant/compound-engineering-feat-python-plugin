@@ -14,12 +14,29 @@ if ! command -v rclone &> /dev/null; then
 fi
 
 # Check superpowers plugin (REQUIRED — provides workflow primitives)
-if ! find ~/.claude/plugins -type d -name "superpowers" 2>/dev/null | grep -q .; then
+MIN_SUPERPOWERS="7.0.0"
+plugins_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins"
+outdated_superpowers=""
+if ! find "$plugins_dir/" -type d -name "superpowers" 2>/dev/null | grep -q .; then
   missing+=("superpowers")
+else
+  # Newest installed version = highest semver-named dir under cache/*/superpowers/
+  sp_version=$(find "$plugins_dir"/cache/*/superpowers -mindepth 1 -maxdepth 1 -type d 2>/dev/null \
+    | sed 's#.*/##' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1)
+  if [ -n "$sp_version" ] && \
+     [ "$(printf '%s\n%s\n' "$MIN_SUPERPOWERS" "$sp_version" | sort -V | head -n1)" != "$MIN_SUPERPOWERS" ]; then
+    outdated_superpowers="$sp_version"
+  fi
 fi
 
-# If nothing is missing, exit silently
+# If nothing is missing or outdated, exit silently
+if [ ${#missing[@]} -eq 0 ] && [ -z "$outdated_superpowers" ]; then
+  exit 0
+fi
+
 if [ ${#missing[@]} -eq 0 ]; then
+  echo "[py-micro-superpowers] superpowers $outdated_superpowers is installed, but the workflow commands assume $MIN_SUPERPOWERS+ behavior.
+  Update with: /plugin update superpowers" >&2
   exit 0
 fi
 
@@ -43,6 +60,11 @@ if [[ " ${missing[*]} " =~ " superpowers " ]]; then
   - [REQUIRED] superpowers — provides brainstorming, planning, execution, review primitives
     Install: /plugin marketplace add anthropics/claude-plugins-official
              /plugin install superpowers@claude-plugins-official"
+fi
+
+if [ -n "$outdated_superpowers" ]; then
+  warning="$warning
+  - [REQUIRED] superpowers $outdated_superpowers is older than $MIN_SUPERPOWERS — update with: /plugin update superpowers"
 fi
 
 warning="$warning

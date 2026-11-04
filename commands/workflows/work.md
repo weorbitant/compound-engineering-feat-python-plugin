@@ -1,12 +1,12 @@
 ---
 name: workflows:work
 description: Execute a plan via superpowers, gated by a Python-specific quality bar (pytest + ruff + mypy + pre-commit), with multi-service execution ordering preserved
-argument-hint: "[plan file path]"
+argument-hint: "[plan file path] [--method subagent|native] [--services svc-a,svc-b]"
 ---
 
 # Work (Python)
 
-This command is a wrapper around `superpowers:executing-plans`. It loads Python-specific context, runs the microservice focus gate, optionally honors per-service execution ordering, delegates plan execution, then enforces a Python quality gate before any PR is created.
+This command is a wrapper around the two superpowers executors, `superpowers:subagent-driven-development` (Subagent-driven) and `superpowers:executing-plans` (Native). It loads Python-specific context, runs the microservice focus gate, optionally honors per-service execution ordering, delegates plan execution, then enforces a Python quality gate before any PR is created.
 
 ## Input Document
 
@@ -16,7 +16,7 @@ If empty, ask the user for a plan path (typically under `docs/superpowers/plans/
 
 ## Prerequisites
 
-If the `superpowers:executing-plans` skill is not available, halt and instruct the user:
+If the `superpowers:subagent-driven-development` or `superpowers:executing-plans` skill is not available, halt and instruct the user:
 
 > "This command requires the `superpowers` plugin. Install it with:
 > `/plugin marketplace add anthropics/claude-plugins-official`
@@ -63,16 +63,27 @@ Options: [Confirm] [Force parallel] [Force sequential] [Adjust order]
 
 ## Step 3: Delegate plan execution to superpowers
 
-Choose the execution skill per current superpowers guidance: **prefer `superpowers:subagent-driven-development` when subagents are available** (they are in Claude Code); use `superpowers:executing-plans` only when subagents are unavailable or the plan header explicitly requests it. SDD keeps its working artifacts in `.superpowers/sdd/` at the repo root — leave that directory alone; it is how an interrupted run resumes. Pass:
+Pick the execution method, first match wins:
+
+1. `--method subagent` or `--method native` in `$ARGUMENTS`.
+2. The method the user chose when `/workflows:plan` finished (if it is in this conversation).
+3. Otherwise ask via `AskUserQuestion`. In pipeline mode, use Subagent-driven without asking.
+
+| Method | Skill | Tradeoff |
+|--------|-------|----------|
+| Subagent-driven | `superpowers:subagent-driven-development` | Fresh implementer and reviewer per task, then a whole-branch review. Most thorough; costs a fresh context per task and per review. |
+| Native | `superpowers:executing-plans` | This session implements every task, then one fresh reviewer checks the whole branch. Cheapest and fastest; no independent review until the end. |
+
+Both executors keep a per-plan workspace at `.superpowers/sdd/<plan-basename>/` (ledger, briefs, test log). Leave it alone; it is how an interrupted run resumes, and the executor deletes it after a clean final review. Per-service plans share a basename, and superpowers gives each one its own workspace. Pass:
 
 - The plan path from `<input_document>`.
 - The `<focus_context>` block.
 - The execution order from Step 2 (so the skill processes tasks in the right wave order in multi-service mode).
-- The test command to use per service:
+- The test command to use per service (SDD puts it in each task brief; Native runs it through `task-done`). It must run the project's whole suite, not only the task's test file:
   - Single-service: `poetry run pytest` (or whatever the project's CLAUDE.md specifies)
   - Multi-service: `cd {service} && poetry run pytest` for each service
 
-The superpowers skill handles the task loop, per-task commits, and incremental progress. **Instruct the skill to NOT invoke `superpowers:finishing-a-development-branch` at the end** — this wrapper owns the finishing flow (Steps 4 and 5) because it adds Python-specific value (quality gate before commit, Post-Deploy Monitoring section in PR). Control returns to this wrapper after the task loop completes (or escalates).
+The superpowers skill handles the task loop, per-task commits, the ledger, and the final whole-branch review. **Instruct the skill (either method) to NOT invoke `superpowers:finishing-a-development-branch` at the end** — this wrapper owns the finishing flow (Steps 4 and 5) because it adds Python-specific value (quality gate before commit, Post-Deploy Monitoring section in PR). Control returns to this wrapper after the task loop completes (or escalates).
 
 ## Step 4: Python Quality Gate (MANDATORY — blocks Step 5)
 

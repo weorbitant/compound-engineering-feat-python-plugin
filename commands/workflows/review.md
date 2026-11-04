@@ -104,6 +104,8 @@ Invoke the `superpowers:requesting-code-review` skill. Pass:
 
 The superpowers skill handles parallel agent execution and findings collection. After it returns, **by default** use the `file-todos` skill to create one todo file per finding under `todos/`, using the standard naming `{issue_id}-pending-{priority}-{description}.md`.
 
+**Declined to judge** — superpowers reviewers list behavior they declined to rule on. Do not file these as P1/P2/P3 todos. Present them to the user as a separate list and ask which ones to treat as findings; file todos only for those.
+
 **Exception** — if the user invoked the command with `--no-todos`, or if the user explicitly requested an inline summary during the conversation, surface findings as a categorized list (P1/P2/P3) without writing files.
 
 ## Step 9: Browser Test Offer (Optional)
@@ -121,5 +123,6 @@ If the user accepts, spawn a sub-agent to run `/test-browser` for the PR. The su
 Summarize:
 - PR/branch reviewed.
 - Number of P1/P2/P3 findings.
+- "Declined to judge" items awaiting the user's decision (if any).
 - Path to todos/ (if file-todos was used).
 - Next-step recommendation (e.g., "Address P1 findings before merging").

@@ -7,7 +7,7 @@
 <p align="center"><strong>Superpowers for Python microservices.</strong></p>
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-4.0.0-6366f1" alt="Version 4.0.0"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-4.1.0-6366f1" alt="Version 4.1.0"></a>
   <img src="https://img.shields.io/badge/agents-25-4b8bbe" alt="25 agents">
   <img src="https://img.shields.io/badge/commands-17-4b8bbe" alt="17 commands">
   <img src="https://img.shields.io/badge/skills-21-4b8bbe" alt="21 skills">
@@ -40,7 +40,7 @@ For monorepos, every command detects your services (`*/pyproject.toml`), scopes 
 
 ## Installation
 
-Requires the `superpowers` plugin (process primitives):
+Requires the `superpowers` plugin **v7.0.0 or later** (process primitives). The session-start check warns if it is missing or older:
 
 ```
 /plugin marketplace add anthropics/claude-plugins-official
@@ -91,7 +91,7 @@ Commands use the `workflows:` prefix to avoid collisions with Claude Code built-
 |---------|---------|
 | `/workflows:brainstorm` | Explore requirements before planning (delegates to `superpowers:brainstorming`) |
 | `/workflows:plan` | Generate implementation plans (delegates to `superpowers:writing-plans`) |
-| `/workflows:work` | Execute a plan with Python quality gates (delegates to `superpowers:subagent-driven-development` / `superpowers:executing-plans`) |
+| `/workflows:work` | Execute a plan with Python quality gates (`--method subagent` → `superpowers:subagent-driven-development`, `--method native` → `superpowers:executing-plans`) |
 | `/workflows:review` | Multi-agent Python code review (delegates to `superpowers:requesting-code-review`) |
 
 Each workflow command:
@@ -285,7 +285,7 @@ All workflow commands accept `--services` for automated invocation (skips all in
 `/workflows:work` is the engine that turns plans into shipped code:
 
 1. **Load context** — project workflow skills + microservice focus gate (execution order for multi-service plans)
-2. **Delegate execution** — `superpowers:subagent-driven-development` runs the task loop with per-task commits and reviews
+2. **Delegate execution** — Subagent-driven (`superpowers:subagent-driven-development`: fresh implementer + reviewer per task) or Native (`superpowers:executing-plans`: this session implements, one whole-branch review). Pick with `--method`, or reuse the choice made at the end of `/workflows:plan`
 3. **Python quality gate (mandatory)** — full pytest suite + ruff + mypy + pre-commit hooks must all pass; loops until clean
 4. **Ship** — commit via the `commit` skill, push, open a PR that includes a Post-Deploy Monitoring & Validation plan
 
@@ -299,7 +299,7 @@ Never ships with failing tests, never skips hooks.
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 4.0.0** — renamed from `compound-engineering-feat-python`; the repository URL is unchanged.
+**Current version: 4.1.0** — synced with superpowers v7.0.0.
 
 ## Contributing
 

@@ -45,14 +45,26 @@ Invoke the `superpowers:brainstorming` skill. Pass:
 - The user's feature description from `<feature_description>` as the topic.
 - The `<focus_context>` block returned from Step 2 (so the superpowers skill includes it in any sub-agent prompts it spawns).
 - A note that any Python `workflow_skills` listed above are already loaded in the conversation as additional context.
+- An instruction to include the `<focus_context>` block in the builder-check subagent prompt it dispatches.
+- **An instruction to return control to this wrapper once the design is approved, instead of invoking `superpowers:writing-plans`.** This wrapper owns the plan handoff so `/workflows:plan` can run the focus gate and the per-service split.
 
-The superpowers skill drives the rest of the conversation (clarifying questions, approach exploration, design presentation, spec writing) and returns when the spec is written to the default path. Control then returns to this wrapper for Step 4.
+The superpowers skill drives the rest of the conversation: it draws out intent, plays back what it heard, sizes the work, and (for a project) writes the design and runs the builder check. It returns once the user approves the description. Control then returns to this wrapper.
+
+### Size outcome
+
+`superpowers:brainstorming` (v7+) picks one of three sizes:
+
+| Size | What exists afterwards | This wrapper then |
+|------|------------------------|-------------------|
+| Quick, clear task | Nothing written; the task is done | Skip Step 4. Report what was done. |
+| Small change | Description agreed in chat | Skip Step 4. Restate the agreed description; the user builds it through the normal workflow. |
+| Project | Approved spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` | Run Step 4 (multi-service only), then suggest `/workflows:plan`. |
 
 ## Step 4: Multi-service spec post-processing (multi-service only)
 
 `superpowers:brainstorming` always writes ONE spec to the default path: `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`. It does not know about per-service paths.
 
-If Step 2 returned a non-empty service list, **after the superpowers skill returns**, this wrapper post-processes the spec:
+If Step 2 returned a non-empty service list **and** brainstorming wrote a spec, **after the superpowers skill returns**, this wrapper post-processes the spec:
 
 1. Read the spec at `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`.
 2. For each focused service, write a copy to `{service}/docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` (create the directory with `mkdir -p` first).
@@ -74,6 +86,7 @@ In single-service mode (Step 2 returned empty service list), this entire step is
 
 After the superpowers skill returns, summarize:
 
-- Spec path(s) written.
+- The size brainstorming chose.
+- Spec path(s) written (project size only).
 - The focused services (if multi-service mode).
-- Suggested next step: `/workflows:plan <spec-path>`.
+- Suggested next step for project size: `/workflows:plan <spec-path>`. For a small change, no plan step is needed.
