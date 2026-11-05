@@ -2,5 +2,8 @@
   "name": "services-pane",
   "version": "0.1.0",
   "description": "Live pane of monorepo services: planned vs actual changes, waves, progress, tests; start work per service.",
-  "types": "./types/index.d.ts"
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "BaronVonSario"
+  }
 }

@@ -75,6 +75,28 @@ for pair in "$agents_n agents" "$commands_n commands" "$skills_n skills"; do
   echo "$desc" | grep -q "${pair}" || err "plugin.json description does not say '${pair}' (filesystem truth)"
 done
 
+# 8. Mods under mods/: manifest parses and names an existing hooks module
+for manifest in mods/*/.claude-plugin/plugin.json; do
+  [ -f "$manifest" ] || continue
+  mod="$(dirname "$(dirname "$manifest")")"
+  python3 - "$manifest" <<'PY' || err "$manifest: invalid JSON or missing name/version"
+import json, sys
+d = json.load(open(sys.argv[1]))
+assert d.get("name") and d.get("version")
+PY
+  hooks="$mod/hooks/hooks.json"
+  if [ -f "$hooks" ]; then
+    while read -r m; do
+      [ -n "$m" ] || continue
+      [ -f "$mod/hooks/$m" ] || err "$hooks: module '$m' does not exist"
+    done < <(python3 -c 'import json,sys; [print(m) for m in json.load(open(sys.argv[1])).get("modules", [])]' "$hooks" 2>/dev/null || { err "$hooks: invalid JSON"; })
+  fi
+  # CI has no `claude`; skip silently there
+  if command -v claude >/dev/null 2>&1; then
+    claude plugin validate "$mod" >/dev/null 2>&1 || err "claude plugin validate failed for $mod"
+  fi
+done
+
 if [ "$fail" -ne 0 ]; then
   echo; echo "Validation FAILED." >&2; exit 1
 fi
