@@ -43,3 +43,9 @@ test('isStale compares last edit to the run time', async () => {
   expect(isStale({ passed: true, summary: '', at: 10 }, 10)).toBe(false)
   expect(isStale({ passed: true, summary: '', at: 10 }, undefined)).toBe(false)
 })
+
+test('pytestService maps an absolute cd target under a root to its service', async () => {
+  expect(pytestService('cd /repo/orders && poetry run pytest', '', services, ['/repo'])).toBe('orders')
+  expect(pytestService('cd /elsewhere/orders && pytest', '', services, ['/repo'])).toBeNull()
+  expect(pytestService('cd /repo/orders && pytest', '', services)).toBeNull()
+})
