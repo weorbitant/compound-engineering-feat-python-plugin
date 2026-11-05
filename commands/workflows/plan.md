@@ -57,9 +57,10 @@ The superpowers skill drives plan writing: the `**Spec:**` pointer, `## Global C
 If Step 2 returned a non-empty service list, **after the superpowers skill returns**, this wrapper post-processes the plan:
 
 1. Read the plan at `docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md`.
-2. Add or update the YAML frontmatter to include a `services:` section so `/workflows:work` can execute in dependency order:
+2. Add or update the YAML frontmatter to include `status: active` and a `services:` section so `/workflows:work` can execute in dependency order:
 
    ```yaml
+   status: active
    services:
      service-a:
        depends_on: []
@@ -71,7 +72,7 @@ If Step 2 returned a non-empty service list, **after the superpowers skill retur
 
    Determine dependencies from the `<focus_context>` block's `dependencies:` section. Ask the user to confirm or adjust the graph before writing the final plan.
 
-3. **Per-service plan files** — for each focused service, write a copy of the plan to `{service}/docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md` (create the directory with `mkdir -p` first). Each per-service plan contains the tasks scoped to that service, the acceptance criteria, and the file changes for that service only. Task implementers only ever see their own plan file, so carry the shared header into every per-service plan:
+3. **Per-service plan files** — for each focused service, write a copy of the plan to `{service}/docs/superpowers/plans/YYYY-MM-DD-<feature-name>.md` (create the directory with `mkdir -p` first). Each per-service plan gets YAML frontmatter containing only `status: active`. Do not copy the `services:` section into per-service plans: a per-service run must not pick up the whole dependency graph. Each per-service plan contains the tasks scoped to that service, the acceptance criteria, and the file changes for that service only. Task implementers only ever see their own plan file, so carry the shared header into every per-service plan:
    - **`**Spec:**` pointer** — rewrite it to that service's spec copy (`{service}/docs/superpowers/specs/...`) when one exists; otherwise keep the original path.
    - **`## Global Constraints`** — copy verbatim.
    - **`**Interfaces:**` blocks** — keep each task's block verbatim, so cross-service signatures are not lost in the split.
