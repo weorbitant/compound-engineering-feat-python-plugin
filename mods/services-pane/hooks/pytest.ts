@@ -28,7 +28,7 @@ export const parsePytest = (output: string, at: number): TestRun | null => {
     if (match) summary = match[1].trim()
   }
   if (summary === null) return null
-  const passed = summary.includes('passed') && !summary.includes('failed') && !summary.includes('error')
+  const passed = /\bpassed\b/.test(summary) && !/\bfailed\b/.test(summary) && !/\berrors?\b/.test(summary)
   return { passed, summary, at }
 }
 

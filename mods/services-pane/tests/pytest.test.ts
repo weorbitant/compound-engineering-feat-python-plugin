@@ -27,6 +27,12 @@ test('parsePytest reads the final summary line', async () => {
   expect(parsePytest('=== 2 passed, 1 error in 0.2s ===', 1)?.passed).toBe(false)
 })
 
+test('parsePytest treats xfailed and xpassed as passing', async () => {
+  expect(parsePytest('3 passed, 1 xfailed in 0.2s', 1)?.passed).toBe(true)
+  expect(parsePytest('2 passed, 1 xpassed in 0.1s', 1)?.passed).toBe(true)
+  expect(parsePytest('1 failed, 2 passed, 1 xfailed in 0.1s', 1)?.passed).toBe(false)
+})
+
 test('parsePytest returns null without a summary', async () => {
   expect(parsePytest('no tests ran', 1)).toBeNull()
   expect(parsePytest('', 1)).toBeNull()
