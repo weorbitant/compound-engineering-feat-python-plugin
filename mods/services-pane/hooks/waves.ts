@@ -3,7 +3,7 @@ import type { DependsOn } from '../types/index'
 type Services = Record<string, DependsOn[]>
 
 const depsOf = (services: Services, s: string): string[] =>
-  (services[s] ?? []).map((d) => d.service).filter((d) => d in services)
+  (Object.hasOwn(services, s) ? services[s] : []).map((d) => d.service).filter((d) => Object.hasOwn(services, d))
 
 /** True when `s` can reach itself through known dependencies. */
 const inCycle = (services: Services, s: string): boolean => {
@@ -24,7 +24,7 @@ export const computeWaves = (services: Services): Record<string, number> => {
   const cyclic = new Set(Object.keys(services).filter((s) => inCycle(services, s)))
   const waves: Record<string, number> = {}
   const wave = (s: string): number => {
-    if (s in waves) return waves[s]
+    if (Object.hasOwn(waves, s)) return waves[s]
     if (cyclic.has(s)) return (waves[s] = 1)
     const deps = depsOf(services, s)
     return (waves[s] = deps.length ? 1 + Math.max(...deps.map(wave)) : 1)
@@ -33,9 +33,12 @@ export const computeWaves = (services: Services): Record<string, number> => {
   return waves
 }
 
-/** Direct dependencies of `service` that are not yet done. */
+/** Direct known dependencies of `service` that are not yet done; cycle members wait on nothing and are never waited on. */
 export const waitingOn = (
   service: string,
   services: Services,
   isDone: (s: string) => boolean,
-): string[] => (services[service] ?? []).map((d) => d.service).filter((d) => !isDone(d))
+): string[] =>
+  inCycle(services, service)
+    ? []
+    : depsOf(services, service).filter((d) => !inCycle(services, d) && !isDone(d))

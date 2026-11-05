@@ -107,19 +107,23 @@ export const parsePlan = (markdown: string): PlanInfo => {
 const basename = (p: string): string => p.slice(p.lastIndexOf('/') + 1)
 const datePrefix = (p: string): string => /^(\d{4}-\d{2}-\d{2})-/.exec(basename(p))?.[1] ?? ''
 
+/** Root plans that declare `services:`, newest first: later date prefix, then later mtime. */
+export const rankPlans = (
+  candidates: { path: string; mtimeMs: number; info: PlanInfo }[],
+): string[] =>
+  candidates
+    .filter(c => c.info.services !== null)
+    .sort((a, b) => {
+      const da = datePrefix(a.path)
+      const db = datePrefix(b.path)
+      return da === db ? b.mtimeMs - a.mtimeMs : da < db ? 1 : -1
+    })
+    .map(c => c.path)
+
 /** The current root plan: the latest dated plan that declares `services:`; mtime breaks ties. */
 export const pickCurrentPlan = (
   candidates: { path: string; mtimeMs: number; info: PlanInfo }[],
-): string | null => {
-  const usable = candidates.filter(c => c.info.services !== null)
-  if (usable.length === 0) return null
-  usable.sort((a, b) => {
-    const da = datePrefix(a.path)
-    const db = datePrefix(b.path)
-    return da === db ? b.mtimeMs - a.mtimeMs : da < db ? 1 : -1
-  })
-  return usable[0].path
-}
+): string | null => rankPlans(candidates)[0] ?? null
 
 export const servicePlanPath = (service: string, rootPlanPath: string): string =>
   `${service}/docs/superpowers/plans/${basename(rootPlanPath)}`

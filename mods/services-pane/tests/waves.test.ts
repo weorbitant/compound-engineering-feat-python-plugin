@@ -22,3 +22,12 @@ test('computeWaves ignores unknown dependencies', async () => {
 test('waitingOn lists direct deps that are not done', async () => {
   expect(waitingOn('payments', chain, (s) => s === 'lib-common')).toEqual(['orders'])
 })
+
+test('waitingOn ignores cycle members, as computeWaves does', async () => {
+  const cycle = { a: [{ service: 'b' }], b: [{ service: 'a' }] }
+  expect(waitingOn('a', cycle, () => false)).toEqual([])
+})
+
+test('waitingOn ignores deps on unknown services', async () => {
+  expect(waitingOn('a', { a: [{ service: 'ghost' }] }, () => false)).toEqual([])
+})
