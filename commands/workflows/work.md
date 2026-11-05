@@ -1,7 +1,7 @@
 ---
 name: workflows:work
 description: Execute a plan via superpowers, gated by a Python-specific quality bar (pytest + ruff + mypy + pre-commit), with multi-service execution ordering preserved
-argument-hint: "[plan file path] [--method subagent|native] [--services svc-a,svc-b]"
+argument-hint: "[plan file path] [--method subagent|native] [--services svc-a,svc-b] [--no-ship]"
 ---
 
 # Work (Python)
@@ -27,6 +27,8 @@ If the `superpowers:subagent-driven-development` or `superpowers:executing-plans
 Read `py-micro-superpowers.local.md` (if it doesn't exist but a legacy `compound-engineering.local.md` does, read that — same schema). If `workflow_skills.work` is set, load each listed skill now (e.g., `django-patterns`, `pytest-patterns`).
 
 ## Step 2: Microservice Focus + Execution Order
+
+**Ship-only check (first):** if the input plan is a root plan (its frontmatter has `services:`) and every listed `{service}/docs/superpowers/plans/<same filename>` has `status: completed`, there is nothing left to execute. Skip the rest of Step 2 and Step 3 (ship-only run) and go to Step 4.
 
 Invoke the `microservice-focus` skill. It will:
 
@@ -128,6 +130,8 @@ Step 5 cannot start until all checks in this step pass. This is not advisory.
 
    If truly no production/runtime impact: include the section with `No additional operational monitoring required: <reason>`.
 
+5. **`--no-ship` boundary** — If `--no-ship` was passed, stop here and report; do not run Step 5.
+
 ## Step 5: Ship It
 
 Prerequisite: Step 4 quality gate passed. If not, return to Step 4.
@@ -182,6 +186,6 @@ EOF
 )"
 ```
 
-4. **Update plan status** — if the input plan has YAML frontmatter with a `status` field, update it from `active` → `completed`.
+4. **Update plan status** — set `status: completed` (from `active`) in the frontmatter of the input plan **and** of every per-service plan whose tasks this run completed.
 
 5. **Notify user** — summarize what shipped, link to PR, note any follow-ups.
