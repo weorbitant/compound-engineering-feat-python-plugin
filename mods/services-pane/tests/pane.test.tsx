@@ -294,6 +294,25 @@ test('an observed pytest run shows on its service and goes stale after an edit',
   await ui.unmount()
 })
 
+test('a test result shows its age', async ($, on) => {
+  const clock = mock.clock(on, { now: 10_000 })
+  world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  await $.tool.call({ tool: 'Bash', command: 'cd orders && poetry run pytest' })
+
+  const ageAt = async (ms: number) => {
+    await clock.set(10_000 + ms)
+    const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+    const text = (await ui.find({ key: 'orders' }))?.text
+    await ui.unmount()
+    return text
+  }
+  expect(await ageAt(30_000)).toContain('tests ✗ · just now')
+  expect(await ageAt(150_000)).toContain('tests ✗ · 2 min ago')
+  expect(await ageAt(2 * 3600_000)).toContain('tests ✗ · 2 h ago')
+})
+
 test('tool calls coalesce into one refresh per two seconds', async ($, on) => {
   const clock = mock.clock(on)
   const w = world(on, monorepo())
