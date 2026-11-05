@@ -9,7 +9,16 @@
       "name": "py-micro-superpowers",
       "source": "./",
       "description": "Superpowers for Python microservices. 25 agents, 17 commands, 21 skills, 1 MCP server.",
-      "version": "4.2.0",
+      "version": "4.3.0",
+      "author": {
+        "name": "BaronVonSario"
+      }
+    },
+    {
+      "name": "services-pane",
+      "source": "./mods/services-pane",
+      "description": "Live pane of monorepo services: planned vs actual changes, waves, progress, tests; start work per service.",
+      "version": "0.1.0",
       "author": {
         "name": "BaronVonSario"
       }

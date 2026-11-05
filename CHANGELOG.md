@@ -5,6 +5,27 @@ All notable changes to the compound-engineering-feat-python plugin will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2026-11-05
+
+### Added
+- `mods/services-pane/`: optional, separately installable mod (early-access mod API)
+  that shows monorepo services in a pane: planned vs actual changes, waves, plan
+  progress, last test result, with Start work and Ship actions. Listed as a second
+  entry in `.claude-plugin/marketplace.json`; install with
+  `/plugin install services-pane@py-micro-superpowers`.
+- `/workflows:work --no-ship`: run tasks and the Python quality gate, then stop
+  before the PR.
+- Ship-only run: `/workflows:work <root plan>` when every per-service plan is
+  `status: completed` skips execution and goes straight to the quality gate and one PR.
+- `/workflows:work` sets `status: completed` on each per-service plan it finishes
+  once the quality gate passes.
+- `scripts/validate.sh` checks mod manifests and hooks, and runs
+  `claude plugin validate` per mod when `claude` is installed.
+
+### Changed
+- Per-service plans written by `/workflows:plan` no longer copy the `services:`
+  frontmatter, so a per-service run cannot pick up the whole dependency graph.
+
 ## [4.2.0] - 2026-11-04
 
 ### Added

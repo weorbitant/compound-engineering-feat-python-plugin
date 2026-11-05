@@ -91,7 +91,7 @@ Commands use the `workflows:` prefix to avoid collisions with Claude Code built-
 |---------|---------|
 | `/workflows:brainstorm` | Explore requirements before planning (delegates to `superpowers:brainstorming`) |
 | `/workflows:plan` | Generate implementation plans (delegates to `superpowers:writing-plans`) |
-| `/workflows:work` | Execute a plan with Python quality gates (`--method subagent` → `superpowers:subagent-driven-development`, `--method native` → `superpowers:executing-plans`) |
+| `/workflows:work` | Execute a plan with Python quality gates (`--method subagent` → `superpowers:subagent-driven-development`, `--method native` → `superpowers:executing-plans`; `--no-ship` stops after the quality gate, before the PR) |
 | `/workflows:review` | Multi-agent Python code review (delegates to `superpowers:requesting-code-review`) |
 
 Each workflow command:
@@ -291,6 +291,16 @@ All workflow commands accept `--services` for automated invocation (skips all in
 
 Never ships with failing tests, never skips hooks.
 
+## Services pane (optional)
+
+`mods/services-pane/` is a separate, optional plugin in this repository: a live pane beside the chat that shows each service's planned vs actual changes, run waves, plan progress and last test result, with buttons to start work per service. The main plugin does not depend on it. Early access: it uses Claude Code's mod API, which may change.
+
+```
+/plugin install services-pane@py-micro-superpowers
+```
+
+Open it with `/services`. See [mods/services-pane/README.md](mods/services-pane/README.md).
+
 ## Try It Locally
 
 [`examples/monorepo/`](examples/monorepo/README.md) holds three tiny FastAPI services (`lib-common`, `orders`, `payments`). Spin up a throwaway copy as its own git repo and load this checkout of the plugin:
@@ -310,7 +320,7 @@ The example README walks through brainstorm → plan → work → review on a cr
 
 See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
-**Current version: 4.2.0** — adds a demo monorepo for trying the plugin locally.
+**Current version: 4.3.0** — adds the optional `services-pane` mod and `--no-ship` for `/workflows:work`.
 
 ## Contributing
 
