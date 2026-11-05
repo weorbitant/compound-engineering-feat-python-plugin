@@ -126,7 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Removed all remaining references to the original template's company/author:
-  `holafly-domain` example skill (now `my-company-domain`), holafly template
+  the company-specific example skill (now `my-company-domain`), template
   attributions in CHANGELOG history, and the author's personal R2 bucket
   (`r2:kieran-claude`) in `/feature-video`.
 - Ported leftover Ruby/Rails idioms to Python across agents: Bundler commands →
