@@ -86,10 +86,12 @@ assert d.get("name") and d.get("version")
 PY
   hooks="$mod/hooks/hooks.json"
   if [ -f "$hooks" ]; then
+    mods_list=$(python3 -c 'import json,sys; [print(m) for m in json.load(open(sys.argv[1])).get("modules", [])]' "$hooks" 2>/dev/null) \
+      || { err "$hooks: invalid JSON"; mods_list=""; }
     while read -r m; do
       [ -n "$m" ] || continue
       [ -f "$mod/hooks/$m" ] || err "$hooks: module '$m' does not exist"
-    done < <(python3 -c 'import json,sys; [print(m) for m in json.load(open(sys.argv[1])).get("modules", [])]' "$hooks" 2>/dev/null || { err "$hooks: invalid JSON"; })
+    done <<<"$mods_list"
   fi
   # CI has no `claude`; skip silently there
   if command -v claude >/dev/null 2>&1; then
