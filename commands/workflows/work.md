@@ -28,7 +28,7 @@ Read `py-micro-superpowers.local.md` (if it doesn't exist but a legacy `compound
 
 ## Step 2: Microservice Focus + Execution Order
 
-**Ship-only check (first):** if the input plan is a root plan (its frontmatter has `services:`) and every listed `{service}/docs/superpowers/plans/<same filename>` has `status: completed`, there is nothing left to execute. Skip the rest of Step 2 and Step 3 (ship-only run) and go to Step 4.
+**Ship-only check (first):** if the input plan is a root plan (its frontmatter has `services:`) and every listed `{service}/docs/superpowers/plans/<same filename>` has `status: completed`, there is nothing left to execute. Skip the rest of Step 2 and Step 3 (ship-only run) and go to Step 4. On this path the focused services are the root plan's `services:` keys: build the `<focus_context>` block from them and their `depends_on`, and use it for Step 4.
 
 Invoke the `microservice-focus` skill. It will:
 
@@ -130,7 +130,9 @@ Step 5 cannot start until all checks in this step pass. This is not advisory.
 
    If truly no production/runtime impact: include the section with `No additional operational monitoring required: <reason>`.
 
-5. **`--no-ship` boundary** — If `--no-ship` was passed, stop here and report; do not run Step 5.
+5. **Mark per-service plans done** — once the checks above pass, set `status: completed` (from `active`) in the frontmatter of every per-service plan whose tasks this run completed. This happens before the `--no-ship` stop, so it applies to normal and `--no-ship` runs.
+
+6. **`--no-ship` boundary** — If `--no-ship` was passed, stop here and report; do not run Step 5.
 
 ## Step 5: Ship It
 
@@ -186,6 +188,6 @@ EOF
 )"
 ```
 
-4. **Update plan status** — set `status: completed` (from `active`) in the frontmatter of the input plan **and** of every per-service plan whose tasks this run completed.
+4. **Update plan status** — set `status: completed` (from `active`) in the frontmatter of the input plan. Per-service plans were already marked at the Step 4 quality gate.
 
 5. **Notify user** — summarize what shipped, link to PR, note any follow-ups.
