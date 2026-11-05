@@ -65,7 +65,8 @@ const monorepo = (): Record<string, string> => ({
   'todos/002-complete-p2-orders-x.md': 'orders/ done already',
 })
 
-type Git = (argv: readonly string[], cwd: string) => { exitCode: number; stdout: string }
+type GitResult = { exitCode: number; stdout: string }
+type Git = (argv: readonly string[], cwd: string) => GitResult | Promise<GitResult>
 
 const NUMSTAT = ['3\t1\tlib-common/a.py', '10\t0\torders/b.py', '2\t2\tdocs/x.md', '1\t0\tbilling/c.py'].join('\n')
 
@@ -83,14 +84,57 @@ const okGit =
 
 const brokenGit: Git = () => ({ exitCode: 128, stdout: '' })
 
-type World = { submitted: string[]; status: (string | undefined)[]; gitCalls: { argv: string; cwd: string }[] }
+type World = {
+  submitted: string[]
+  status: (string | undefined)[]
+  toasts: string[]
+  gitCalls: { argv: string; cwd: string }[]
+  open: Set<string>
+  /** Absolute path -> mtime the fs answers; a file not listed stats at 0. */
+  mtimes: Record<string, number>
+  /** Commands `$.command.list()` answers. */
+  commands: string[]
+  /** When set, `$.command.run` and `$.prompt.submit` fail as the engine refusing them. */
+  failActions: boolean
+}
 
 /** Stands in for the engine: a file tree under ROOT (relative keys), git, the prompt and the status line. */
 const world = (on: On, files: Record<string, string>, git: Git = okGit(), root = ROOT): World => {
   const abs: Record<string, string> = {}
   for (const [k, v] of Object.entries(files)) abs[k.startsWith('/') ? k : `${root}/${k}`] = v
   const isDir = (p: string) => Object.keys(abs).some(k => k.startsWith(`${p}/`))
-  const w: World = { submitted: [], status: [], gitCalls: [] }
+  const w: World = {
+    submitted: [],
+    status: [],
+    toasts: [],
+    gitCalls: [],
+    open: new Set(),
+    mtimes: {},
+    commands: ['services', 'workflows:work'],
+    failActions: false,
+  }
+
+  on('fs.stat', (_, e) => ({
+    value: { kind: 'file', size: 0, mtimeMs: Object.hasOwn(w.mtimes, e.path) ? w.mtimes[e.path] : 0, isLink: false },
+  }))
+  on('command.list', () => ({
+    value: w.commands.map(name => ({ name, description: '', source: 'plugin' })),
+  }))
+  on('ui.toast', (_, e) => {
+    w.toasts.push(e.text)
+    return { value: undefined }
+  })
+  on('ui.open', (_, e) => {
+    w.open.add(e.id)
+    return { value: { isPlaced: true } }
+  })
+  on('ui.close', (_, e) => {
+    w.open.delete(e.id)
+    return { value: undefined }
+  })
+  on('ui.panes', () => ({
+    value: [...w.open].map(id => ({ id, title: 'Services', isShown: true, isFocused: false, isPlaced: true })),
+  }))
 
   on('session.cwd', () => ({ value: root }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
@@ -110,18 +154,20 @@ const world = (on: On, files: Record<string, string>, git: Git = okGit(), root =
       value: [...seen].map(([name, kind]) => ({ name, kind, size: 0, mtimeMs: 1000, isLink: false })),
     }
   })
-  on('process.run', (_, e) => {
+  on('process.run', async (_, e) => {
     const cwd = e.init?.cwd ?? root
     w.gitCalls.push({ argv: e.argv.join(' '), cwd })
-    const r = e.argv[0] === 'git' ? git(e.argv, cwd) : { exitCode: 127, stdout: '' }
+    const r = e.argv[0] === 'git' ? await git(e.argv, cwd) : { exitCode: 127, stdout: '' }
     return { value: { ...r, stderr: '', isStdoutTruncated: false, isStderrTruncated: false } }
   })
   on('prompt.submit', (_, e) => {
+    if (w.failActions) throw new Error('no session')
     w.submitted.push(e.text)
     return { text: e.text }
   })
   // A slash command reaches the engine as command.run, never as a prompt: record it as typed.
   on('command.run', { command: 'workflows:work' }, (_, e) => {
+    if (w.failActions) throw new Error('Unknown command: workflows:work')
     w.submitted.push(`/${e.command} ${e.args}`)
     return { text: '' }
   })
@@ -349,25 +395,13 @@ test('the watched checkout is the worktree whose ledger names the plan', async (
 
 test('/services toggles the pane', async ($, on) => {
   const clock = mock.clock(on)
-  world(on, monorepo())
-  const open = new Set<string>()
-  on('ui.open', (_, e) => {
-    open.add(e.id)
-    return { value: { isPlaced: true } }
-  })
-  on('ui.close', (_, e) => {
-    open.delete(e.id)
-    return { value: undefined }
-  })
-  on('ui.panes', () => ({
-    value: [...open].map(id => ({ id, title: 'Services', isShown: true, isFocused: false, isPlaced: true })),
-  }))
+  const w = world(on, monorepo())
   await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
   await clock.settle()
   await $.command.run({ command: 'services', args: '' })
-  expect([...open]).toEqual(['services-pane'])
+  expect([...w.open]).toEqual(['services-pane'])
   await $.command.run({ command: 'services', args: '' })
-  expect([...open]).toEqual([])
+  expect([...w.open]).toEqual([])
 })
 
 test('Review Focus 1: no plan lists services with changes and no waves or actions', async ($, on) => {
@@ -417,5 +451,158 @@ test('Review Focus 5: a single-service repo says so', async ($, on) => {
   await clock.settle()
   const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
   expect(await ui.find({ type: 'Text', text: 'No services found (single-service repo).' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('F1: a file changed in the service after the run marks it stale, with no Edit call', async ($, on) => {
+  const clock = mock.clock(on, { now: 10_000 })
+  const w = world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  await $.tool.call({ tool: 'Bash', command: 'cd orders && poetry run pytest' })
+  await clock.advance(2000)
+  let ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ key: 'orders' }))?.text).not.toContain('stale')
+  await ui.unmount()
+  // A formatter rewrites orders/b.py after the run (a Bash call, not Edit).
+  w.mtimes[`${ROOT}/orders/b.py`] = 11_000
+  await $.tool.call({ tool: 'Bash', command: 'ruff check --fix .' })
+  await clock.advance(2000)
+  ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ key: 'orders' }))?.text).toContain('tests ✗ (stale)')
+  await ui.unmount()
+  expect(w.status.at(-1)).toBe('3 services · orders 1/4 · tests ✗ orders (stale)')
+})
+
+test('F2: the status line marks a stale failing run', async ($, on) => {
+  const clock = mock.clock(on, { now: 10_000 })
+  const w = world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  await $.tool.call({ tool: 'Bash', command: 'cd orders && poetry run pytest' })
+  await clock.advance(1000)
+  await $.tool.call({ tool: 'Edit', file_path: `${ROOT}/orders/x.py`, old_string: 'a', new_string: 'b' })
+  await clock.advance(2000)
+  expect(w.status.at(-1)).toBe('3 services · orders 1/4 · tests ✗ orders (stale)')
+})
+
+test('F3: a refused refresh timer does not stop later refreshes', async ($, on) => {
+  // Registered before the mock clock so it stands above it and sees the plugin's wait first.
+  let refusals = 1
+  on('clock.after', { ms: 2000 }, ($, e, next) => (refusals-- > 0 ? { deny: 'refused' } : next(e)))
+  const clock = mock.clock(on)
+  const w = world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  const diffs = () => w.gitCalls.filter(c => c.argv.startsWith('git diff')).length
+  const before = diffs()
+  await $.tool.call({ tool: 'Edit', file_path: `${ROOT}/orders/x.py`, old_string: 'a', new_string: 'b' })
+  await clock.advance(10_000)
+  expect(diffs()).toBe(before)
+  await $.tool.call({ tool: 'Edit', file_path: `${ROOT}/orders/x.py`, old_string: 'a', new_string: 'b' })
+  await clock.advance(2000)
+  expect(diffs()).toBe(before + 1)
+})
+
+test('F4: an older refresh that finishes last does not overwrite a newer one', async ($, on) => {
+  const clock = mock.clock(on)
+  let release: () => void = () => {}
+  const gate = new Promise<void>(resolve => {
+    release = resolve
+  })
+  let numstat = '3\t1\tlib-common/a.py'
+  let diffCalls = 0
+  // The first build's diff waits on the gate and answers what was true then; later ones answer at once.
+  const git: Git = async argv => {
+    if (argv[1] !== 'diff') return okGit()(argv, ROOT)
+    const answer = { exitCode: 0, stdout: numstat }
+    if (diffCalls++ === 0) await gate
+    return answer
+  }
+  world(on, monorepo(), git)
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  numstat = '7\t0\tlib-common/a.py'
+  await $.command.run({ command: 'services', args: '' })
+  release()
+  await clock.settle()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ key: 'lib-common' }))?.text).toContain('+7 −0')
+  await ui.unmount()
+})
+
+test('F5: a failing press shows a toast', async ($, on) => {
+  const clock = mock.clock(on)
+  const w = world(on, monorepo())
+  w.failActions = true
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'orders' })
+  await ui.press({ key: 'start' })
+  await ui.press({ key: 'open' })
+  expect(w.toasts.length).toBe(2)
+  expect(w.toasts[0]).toMatch(/^services-pane: Start work failed/)
+  await ui.unmount()
+})
+
+test('F5: Start work and Ship hide when /workflows:work is not available', async ($, on) => {
+  const clock = mock.clock(on)
+  const w = world(on, {
+    ...monorepo(),
+    [`orders/${PLAN}`]: servicePlan('orders', 'completed', 4),
+    [`payments/${PLAN}`]: servicePlan('payments', 'completed', 5),
+    [`lib-common/${PLAN}`]: servicePlan('lib-common', 'active', 3),
+  })
+  w.commands = ['services']
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'lib-common' })
+  expect(await ui.find({ key: 'start' })).toBeUndefined()
+  expect(await ui.find({ key: 'open' })).toBeDefined()
+  await ui.unmount()
+})
+
+test('F5: a plugin-prefixed workflows:work command is used by its full name', async ($, on) => {
+  const clock = mock.clock(on)
+  const w = world(on, monorepo())
+  w.commands = ['services', 'py-micro-superpowers:workflows:work']
+  const ran: string[] = []
+  on('command.run', { command: 'py-micro-superpowers:workflows:work' }, (_, e) => {
+    ran.push(`/${e.command} ${e.args}`)
+    return { text: '' }
+  })
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  await ui.press({ key: 'orders' })
+  await ui.press({ key: 'start' })
+  expect(ran).toEqual([`/py-micro-superpowers:workflows:work orders/${PLAN} --services orders --no-ship`])
+  await ui.unmount()
+})
+
+test('F6: the age label updates while idle with the pane open', async ($, on) => {
+  const clock = mock.clock(on, { now: 10_000 })
+  world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  await $.command.run({ command: 'services', args: '' })
+  await $.tool.call({ tool: 'Bash', command: 'cd orders && poetry run pytest' })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ key: 'orders' }))?.text).toContain('just now')
+  await clock.advance(180_000)
+  expect((await ui.find({ key: 'orders' }))?.text).toContain('tests ✗ · 3 min ago')
+  await ui.unmount()
+})
+
+test('F7: an absolute cd into a service is attributed to it', async ($, on) => {
+  const clock = mock.clock(on)
+  world(on, monorepo())
+  await $.session.start({ cwd: ROOT, surface: 'terminal', isInteractive: true })
+  await clock.settle()
+  await $.tool.call({ tool: 'Bash', command: `cd ${ROOT}/orders && poetry run pytest` })
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ key: 'orders' }))?.text).toContain('tests ✗')
   await ui.unmount()
 })

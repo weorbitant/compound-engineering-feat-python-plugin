@@ -22,6 +22,8 @@ export type ServiceRow = {
   /** null = git unavailable */
   changes: FileChange[] | null
   outOfScope: boolean
+  /** Newest mtime among the service's changed files; null when none or unknown. */
+  lastChangeAt: number | null
   todos: number
 }
 export type Snapshot = {
@@ -29,6 +31,8 @@ export type Snapshot = {
   branch: string | null
   rootPlan: string | null
   plans: string[]
+  /** The name `/workflows:work` is registered under, or null when it is not available. */
+  workCommand: string | null
   services: ServiceRow[]
   refreshedAt: number
 }

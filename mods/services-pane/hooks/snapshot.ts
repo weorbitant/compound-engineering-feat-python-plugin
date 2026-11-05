@@ -111,6 +111,30 @@ async function countTodos($: EngineInterface, checkout: string): Promise<string[
   return texts
 }
 
+/** Newest mtime among `changes` in `checkout`; null when none can be read. */
+async function newestMtime($: EngineInterface, checkout: string, changes: FileChange[]): Promise<number | null> {
+  let newest: number | null = null
+  for (const c of changes) {
+    try {
+      const { mtimeMs } = await $.fs.stat(`${checkout}/${c.path}`)
+      if (newest === null || mtimeMs > newest) newest = mtimeMs
+    } catch {
+      // deleted or unreadable: it has no mtime to offer
+    }
+  }
+  return newest
+}
+
+/** The registered name of `/workflows:work` (bare, else plugin-prefixed), or null. */
+async function findWorkCommand($: EngineInterface): Promise<string | null> {
+  try {
+    const names = (await $.command.list()).map(c => c.name)
+    return names.find(n => n === 'workflows:work') ?? names.find(n => n.endsWith(':workflows:work')) ?? null
+  } catch {
+    return null
+  }
+}
+
 /** Relative path from `from` to `to`, both absolute; `.` when equal. */
 export const relativePath = (from: string, to: string): string => {
   const a = from.split('/').filter(Boolean)
@@ -169,6 +193,7 @@ export async function buildSnapshot($: EngineInterface, cwd: string): Promise<Sn
     const numbers = tasks.map(t => t.n)
     const logged = ledger === null ? null : completedTasks(ledger)
     const doneTasks = logged !== null ? numbers.filter(n => logged.has(n)) : isDone ? numbers : []
+    const changed = groups === null ? null : Object.hasOwn(groups, name) ? groups[name] : []
     return {
       name,
       inPlan,
@@ -180,9 +205,10 @@ export async function buildSnapshot($: EngineInterface, cwd: string): Promise<Sn
       doneTasks,
       total: tasks.length,
       isDone,
-      changes: groups === null ? null : Object.hasOwn(groups, name) ? groups[name] : [],
+      changes: changed,
       outOfScope:
         groups !== null && Object.hasOwn(groups, name) && outOfScope(name, discovered, planServices === null ? null : planNames),
+      lastChangeAt: changed === null ? null : await newestMtime($, checkout, changed),
       todos: todoTexts.filter(t => t.includes(`${name}/`)).length,
     }
   }
@@ -203,6 +229,7 @@ export async function buildSnapshot($: EngineInterface, cwd: string): Promise<Sn
     branch,
     rootPlan,
     plans,
+    workCommand: await findWorkCommand($),
     services,
     refreshedAt: await $.clock.now(),
   }

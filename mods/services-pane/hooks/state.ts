@@ -6,7 +6,7 @@ import type { Snapshot, TestRun } from '../types/index'
 // The engine's scan lists state only from atoms written in the file that reads or
 // writes them, so every state access goes through this file.
 // Bump a tag when its value's shape changes: it declines what older code stored.
-const snapshot = atom({ plugin: 'services-pane', key: 'snapshot' } as const, null, { shape: 'snapshot-1' })
+const snapshot = atom({ plugin: 'services-pane', key: 'snapshot' } as const, null, { shape: 'snapshot-2' })
 const selected = atom({ plugin: 'services-pane', key: 'selected' } as const, null, { shape: 'selected-1' })
 const pinnedPlan = atom({ plugin: 'services-pane', key: 'pinnedPlan' } as const, null, { shape: 'pinned-1' })
 const tests = atom({ plugin: 'services-pane', key: 'tests' } as const, {}, { shape: 'tests-1' })

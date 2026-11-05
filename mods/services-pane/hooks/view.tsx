@@ -24,10 +24,18 @@ export const ageLabel = (at: number, now: number): string => {
   return minutes < 60 ? `${minutes} min ago` : `${Math.floor(minutes / 60)} h ago`
 }
 
-const testsLabel = (run: TestRun | undefined, lastEditAt: number | undefined, now: number): string | null =>
+/** When files in the service last changed, by an edit Claude made or any other means (mtime). */
+const changedAt = (row: ServiceRow, edits: Record<string, number>): number | undefined => {
+  const times = [Object.hasOwn(edits, row.name) ? edits[row.name] : null, row.lastChangeAt].filter(
+    (t): t is number => t !== null,
+  )
+  return times.length === 0 ? undefined : Math.max(...times)
+}
+
+const testsLabel = (run: TestRun | undefined, lastChangeAt: number | undefined, now: number): string | null =>
   run === undefined
     ? null
-    : `tests ${run.passed ? '✓' : '✗'}${isStale(run, lastEditAt) ? ' (stale)' : ''} · ${ageLabel(run.at, now)}`
+    : `tests ${run.passed ? '✓' : '✗'}${isStale(run, lastChangeAt) ? ' (stale)' : ''} · ${ageLabel(run.at, now)}`
 
 /** True when Start work applies: a per-service plan, nothing to wait on, not done. */
 export const canStart = (row: ServiceRow): boolean => row.planPath !== null && row.waitingOn.length === 0 && !row.isDone
@@ -39,7 +47,11 @@ export const canShip = (snap: Snapshot): boolean => {
 }
 
 /** The status line, e.g. `3 services · orders 1/4 · tests ✗ payments`; undefined without a root plan. */
-export const statusLine = (snap: Snapshot | null, tests: Record<string, TestRun>): string | undefined => {
+export const statusLine = (
+  snap: Snapshot | null,
+  tests: Record<string, TestRun>,
+  edits: Record<string, number>,
+): string | undefined => {
   if (snap === null || snap.rootPlan === null) return undefined
   const planned = snap.services.filter(r => r.inPlan)
   const parts = [plural(planned.length, 'service')]
@@ -48,7 +60,9 @@ export const statusLine = (snap: Snapshot | null, tests: Record<string, TestRun>
     const active = planned.filter(canStart).map(r => `${r.name} ${r.done}/${r.total}`)
     if (active.length > 0) parts.push(active.join(', '))
   }
-  const failing = snap.services.filter(r => Object.hasOwn(tests, r.name) && !tests[r.name].passed).map(r => r.name)
+  const failing = snap.services
+    .filter(r => Object.hasOwn(tests, r.name) && !tests[r.name].passed)
+    .map(r => (isStale(tests[r.name], changedAt(r, edits)) ? `${r.name} (stale)` : r.name))
   if (failing.length > 0) parts.push(`tests ✗ ${failing.join(', ')}`)
   return parts.join(' · ')
 }
@@ -70,7 +84,7 @@ const rowText = (
   if (row.waitingOn.length > 0) parts.push(`waiting on ${row.waitingOn.join(', ')}`)
   const test = testsLabel(
     Object.hasOwn(tests, row.name) ? tests[row.name] : undefined,
-    Object.hasOwn(edits, row.name) ? edits[row.name] : undefined,
+    changedAt(row, edits),
     now,
   )
   if (test !== null) parts.push(test)
@@ -83,9 +97,18 @@ function submit($: EngineInterface, text: string) {
   return $.prompt.submit({ text, asUser: true })
 }
 
-/** Runs `/workflows:work <args>` as if typed; a plugin may not submit a slash line as a prompt. */
-function work($: EngineInterface, args: string) {
-  return $.command.run({ command: 'workflows:work', args })
+/** Runs `/workflows:work <args>` as if typed, under the name it is registered by; a plugin may not submit a slash line as a prompt. */
+function work($: EngineInterface, command: string, args: string) {
+  return $.command.run({ command, args })
+}
+
+/** Runs a press's action; a failure becomes a short toast instead of an unhandled rejection. */
+async function attempt($: EngineInterface, label: string, action: () => Promise<unknown>): Promise<void> {
+  try {
+    await action()
+  } catch (err) {
+    $.ui.toast(`services-pane: ${label} failed: ${err instanceof Error ? err.message : String(err)}`)
+  }
 }
 
 /** Draws the Services pane from the stored snapshot; `refresh` rebuilds it (after Switch plan). */
@@ -98,7 +121,7 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
   const selected = await readSelected($)
   const tests = await readTests($)
   const edits = await readEdits($)
-  // Redrawn on every refresh, which keeps the age current without a timer of its own.
+  // Redrawn on every refresh and, while the pane is open, once a minute (register.tsx).
   const now = await $.clock.now()
   const width = Math.max(...snap.services.map(r => r.name.length))
   const current = snap.services.find(r => r.name === selected) ?? null
@@ -143,13 +166,13 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
     }
     const run = Object.hasOwn(tests, current.name) ? tests[current.name] : undefined
     if (run !== undefined) {
-      const lastEdit = Object.hasOwn(edits, current.name) ? edits[current.name] : undefined
-      details.push(<Text>{`${testsLabel(run, lastEdit, now)} · ${run.summary}`}</Text>)
+      details.push(<Text>{`${testsLabel(run, changedAt(current, edits), now)} · ${run.summary}`}</Text>)
     }
   }
 
   const actions: RenderElement[] = []
-  if (current !== null && current.planPath !== null && canStart(current)) {
+  const workCommand = snap.workCommand
+  if (workCommand !== null && current !== null && current.planPath !== null && canStart(current)) {
     const planPath = current.planPath
     const name = current.name
     actions.push(
@@ -157,22 +180,28 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
         key="start"
         variant="primary"
         label="Start work"
-        onPress={() => work($, `${planPath} --services ${name} --no-ship`)}
+        onPress={() => attempt($, 'Start work', () => work($, workCommand, `${planPath} --services ${name} --no-ship`))}
       />,
     )
   }
-  if (canShip(snap) && snap.rootPlan !== null) {
+  if (workCommand !== null && canShip(snap) && snap.rootPlan !== null) {
     const rootPlan = snap.rootPlan
-    actions.push(<Button key="ship" variant="primary" label="Ship" onPress={() => work($, rootPlan)} />)
+    actions.push(
+      <Button key="ship" variant="primary" label="Ship" onPress={() => attempt($, 'Ship', () => work($, workCommand, rootPlan))} />,
+    )
   }
   if (current !== null && current.planPath !== null) {
     const planPath = current.planPath
-    actions.push(<Button key="open" label="Open plan" onPress={() => submit($, `Show me ${planPath}`)} />)
+    actions.push(<Button key="open" label="Open plan" onPress={() => attempt($, 'Open plan', () => submit($, `Show me ${planPath}`))} />)
   }
   if (current !== null) {
     const name = current.name
     actions.push(
-      <Button key="diff" label="Show diff" onPress={() => submit($, `Summarize the changes in ${name}/ on this branch.`)} />,
+      <Button
+        key="diff"
+        label="Show diff"
+        onPress={() => attempt($, 'Show diff', () => submit($, `Summarize the changes in ${name}/ on this branch.`))}
+      />,
     )
   }
   if (snap.plans.length > 1) {
@@ -182,10 +211,12 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
       <Button
         key="switch"
         label="Switch plan"
-        onPress={async () => {
-          await pinPlan($, next)
-          await refresh()
-        }}
+        onPress={() =>
+          attempt($, 'Switch plan', async () => {
+            await pinPlan($, next)
+            await refresh()
+          })
+        }
       />,
     )
   }

@@ -24,7 +24,7 @@ Services are the top-level folders that contain `pyproject.toml`. The current pl
 | `+18 −0  1 file` | Actual changes from git: merge-base with the default branch plus uncommitted, per service. `git unavailable` outside a git repo. |
 | `⚠ not in plan` | The service folder has changes but is not in the current plan's `services:`. |
 | `waiting on X` | Dependencies not yet done. |
-| `tests ✓ · 2 min ago` | Last pytest run Claude made in that service, with its age. `(stale)` is added once files in the service change after the run. Observed only; the mod never runs tests. |
+| `tests ✓ · 2 min ago` | Last pytest run Claude made in that service, with its age (refreshed every 60 s while the pane is open). `(stale)` is added once files in the service change after the run, by any means: an edit Claude makes, or a file rewritten by a formatter, pre-commit hook or another tool (seen through the changed files' modification times). The status line marks a stale failing run the same way. Observed only; the mod never runs tests. |
 
 Select a service to see its tasks and changed files below the list.
 
@@ -35,7 +35,7 @@ Select a service to see its tasks and changed files below the list.
 - **Open plan**: asks Claude to show the plan file.
 - **Show diff**: asks Claude to summarize that service's changes.
 
-Start work and Ship go through the engine's command API.
+Start work and Ship go through the engine's command API, and are hidden when `/workflows:work` is not available in the session (for example when the main plugin is not installed). A press that fails shows a short toast.
 
 ## Limits
 
