@@ -17,8 +17,17 @@ const changesLabel = (row: ServiceRow): string | null => {
   return `+${added} −${removed}  ${plural(row.changes.length, 'file')}`
 }
 
-const testsLabel = (run: TestRun | undefined, lastEditAt: number | undefined): string | null =>
-  run === undefined ? null : `tests ${run.passed ? '✓' : '✗'}${isStale(run, lastEditAt) ? ' (stale)' : ''}`
+/** `just now` under a minute, then `N min ago`, then `N h ago` from an hour. */
+export const ageLabel = (at: number, now: number): string => {
+  const minutes = Math.floor(Math.max(0, now - at) / 60_000)
+  if (minutes < 1) return 'just now'
+  return minutes < 60 ? `${minutes} min ago` : `${Math.floor(minutes / 60)} h ago`
+}
+
+const testsLabel = (run: TestRun | undefined, lastEditAt: number | undefined, now: number): string | null =>
+  run === undefined
+    ? null
+    : `tests ${run.passed ? '✓' : '✗'}${isStale(run, lastEditAt) ? ' (stale)' : ''} · ${ageLabel(run.at, now)}`
 
 /** True when Start work applies: a per-service plan, nothing to wait on, not done. */
 export const canStart = (row: ServiceRow): boolean => row.planPath !== null && row.waitingOn.length === 0 && !row.isDone
@@ -50,6 +59,7 @@ const rowText = (
   isSelected: boolean,
   tests: Record<string, TestRun>,
   edits: Record<string, number>,
+  now: number,
 ): string => {
   const mark = isSelected ? '▶' : row.isDone ? '●' : '○'
   const parts = [`${mark} ${row.name.padEnd(width)}`]
@@ -61,6 +71,7 @@ const rowText = (
   const test = testsLabel(
     Object.hasOwn(tests, row.name) ? tests[row.name] : undefined,
     Object.hasOwn(edits, row.name) ? edits[row.name] : undefined,
+    now,
   )
   if (test !== null) parts.push(test)
   if (row.todos > 0) parts.push(plural(row.todos, 'todo'))
@@ -87,12 +98,14 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
   const selected = await readSelected($)
   const tests = await readTests($)
   const edits = await readEdits($)
+  // Redrawn on every refresh, which keeps the age current without a timer of its own.
+  const now = await $.clock.now()
   const width = Math.max(...snap.services.map(r => r.name.length))
   const current = snap.services.find(r => r.name === selected) ?? null
 
   const rowButton = (row: ServiceRow) => (
     <Button key={row.name} plain onPress={() => select($, row.name)}>
-      {rowText(row, width, row.name === selected, tests, edits)}
+      {rowText(row, width, row.name === selected, tests, edits, now)}
     </Button>
   )
 
@@ -131,7 +144,7 @@ export async function drawPane($: EngineInterface, e: RenderInput<'Pane'>, refre
     const run = Object.hasOwn(tests, current.name) ? tests[current.name] : undefined
     if (run !== undefined) {
       const lastEdit = Object.hasOwn(edits, current.name) ? edits[current.name] : undefined
-      details.push(<Text>{`${testsLabel(run, lastEdit)} · ${run.summary}`}</Text>)
+      details.push(<Text>{`${testsLabel(run, lastEdit, now)} · ${run.summary}`}</Text>)
     }
   }
 
