@@ -60,8 +60,9 @@ while read -r py; do
 done < <(find skills -path '*/scripts/*.py' -not -path '*__pycache__*')
 
 # 6. Stale references that must never reappear
-stale='holafly|orchestrating-swarms|learnings-researcher|kieran-claude'
-if grep -rInE "$stale" --include='*.md' --include='*.sh' --include='*.py' --include='*.json' \
+# The first name is assembled at runtime so the guard itself never contains it.
+stale="$(printf '%s%s' 'hola' 'fly')|orchestrating-swarms|learnings-researcher|kieran-claude"
+if grep -rIinE "$stale" --include='*.md' --include='*.sh' --include='*.py' --include='*.json' \
     agents commands skills scripts .claude-plugin CLAUDE.md README.md 2>/dev/null | grep -v 'scripts/validate.sh'; then
   err "stale references found (see above)"
 fi
