@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parsePlan, pickCurrentPlan, servicePlanPath } from '../hooks/plan'
+import { parsePlan, pickCurrentPlan, rankPlans, servicePlanPath } from '../hooks/plan'
 
 const info = (services: Record<string, never[]> | null) => ({ status: null, services, tasks: [] })
 
@@ -67,4 +67,15 @@ test('servicePlanPath nests the root plan basename under the service', async () 
   expect(servicePlanPath('orders', 'docs/superpowers/plans/2026-11-05-refunds.md')).toBe(
     'orders/docs/superpowers/plans/2026-11-05-refunds.md',
   )
+})
+
+test('rankPlans lists plans with services newest first', async () => {
+  expect(
+    rankPlans([
+      { path: 'p/2026-11-05-a.md', mtimeMs: 100, info: info({}) },
+      { path: 'p/2026-11-06-b.md', mtimeMs: 1, info: info({}) },
+      { path: 'p/2026-11-07-c.md', mtimeMs: 9, info: info(null) },
+      { path: 'p/2026-11-05-d.md', mtimeMs: 200, info: info({}) },
+    ]),
+  ).toEqual(['p/2026-11-06-b.md', 'p/2026-11-05-d.md', 'p/2026-11-05-a.md'])
 })

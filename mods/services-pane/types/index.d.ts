@@ -15,6 +15,8 @@ export type ServiceRow = {
   waitingOn: string[]
   tasks: PlanTask[]
   done: number
+  /** Task numbers the ledger marks complete (all tasks once the plan is completed). */
+  doneTasks: number[]
   total: number
   isDone: boolean
   /** null = git unavailable */
